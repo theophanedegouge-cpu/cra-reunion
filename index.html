@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRA Réunion — 1er RDV Médical</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
+:root{
+  --bg:#f5f2ed;--surface:#fff;--s2:#f0ede8;--border:#d8d2c8;--b2:#c8c0b4;
+  --accent:#2c5f8a;--green:#3d8a6e;--red:#c0392b;--warn:#8a6a2c;
+  --text:#2a2520;--dim:#7a7268;--mid:#4a4540;
+  --mono:'IBM Plex Mono',monospace;--serif:'Lora',serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--serif);min-height:100vh;display:flex;flex-direction:column;}
+
+header{background:var(--accent);display:flex;align-items:stretch;position:sticky;top:0;z-index:200;box-shadow:0 2px 12px rgba(44,95,138,.3);}
+.hbrand{background:rgba(0,0,0,.15);padding:11px 18px;display:flex;align-items:center;gap:10px;border-right:1px solid rgba(255,255,255,.15);}
+.hlogo{font-family:var(--mono);font-size:13px;font-weight:500;color:#fff;letter-spacing:3px;}
+.hsub{font-size:11px;color:rgba(255,255,255,.7);font-style:italic;}
+.hcenter{flex:1;display:flex;align-items:center;padding:0 14px;gap:10px;}
+.hdoc{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.9);letter-spacing:2px;text-transform:uppercase;}
+.hbadge{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:3px;padding:2px 9px;font-family:var(--mono);font-size:11px;color:#fff;}
+.hact{display:flex;align-items:center;gap:1px;padding:0 6px;}
+.hbtn{background:none;border:none;color:rgba(255,255,255,.75);font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:7px 9px;cursor:pointer;border-radius:3px;transition:.15s;text-transform:uppercase;}
+.hbtn:hover{background:rgba(255,255,255,.1);color:#fff;}
+.hbtn.p{background:rgba(255,255,255,.2);color:#fff;}
+.hbtn.p:hover{background:rgba(255,255,255,.3);}
+
+.app{display:grid;grid-template-columns:195px 1fr 350px;flex:1;height:calc(100vh - 46px);}
+
+nav{background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+.nsec{font-family:var(--mono);font-size:7.5px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;padding:11px 13px 3px;}
+.nbtn{background:none;border:none;color:var(--mid);font-family:var(--serif);font-size:12px;padding:6px 13px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.12s;border-left:3px solid transparent;width:100%;}
+.nbtn:hover{background:var(--s2);color:var(--text);}
+.nbtn.active{color:var(--accent);border-left-color:var(--accent);background:#e8f0f8;font-weight:600;}
+.ndot{width:5px;height:5px;border-radius:50%;background:var(--b2);flex-shrink:0;}
+.nbtn.active .ndot{background:var(--accent);}
+.nfoot{margin-top:auto;padding:11px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:4px;}
+.nfbtn{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:3px;padding:6px 9px;font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--dim);cursor:pointer;text-transform:uppercase;transition:.12s;text-align:left;}
+.nfbtn:hover{color:var(--accent);border-color:var(--accent);}
+
+/* PATIENTS */
+.pdw{position:fixed;left:0;top:46px;bottom:0;width:290px;background:var(--surface);border-right:2px solid var(--accent);z-index:150;display:none;flex-direction:column;box-shadow:4px 0 20px rgba(0,0,0,.15);}
+.pdw.open{display:flex;}
+.pdhd{background:var(--accent);padding:11px 15px;display:flex;align-items:center;justify-content:space-between;}
+.pdtit{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:#fff;text-transform:uppercase;}
+.pdcl{background:none;border:none;color:rgba(255,255,255,.7);font-size:17px;cursor:pointer;}
+.pdlist{flex:1;overflow-y:auto;padding:9px;display:flex;flex-direction:column;gap:4px;}
+.pcard{background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:9px 11px;cursor:pointer;transition:.12s;display:flex;align-items:center;gap:8px;}
+.pcard:hover,.pcard.active{border-color:var(--accent);background:#e8f0f8;}
+.pcn{font-family:var(--serif);font-size:13px;font-weight:600;flex:1;}
+.pcd{font-family:var(--mono);font-size:9px;color:var(--dim);}
+.pcdel{background:none;border:none;color:var(--dim);cursor:pointer;font-size:13px;}
+.pcdel:hover{color:var(--red);}
+.pdfoot{padding:9px;border-top:1px solid var(--border);}
+.pdnew{width:100%;background:var(--accent);color:#fff;border:none;border-radius:3px;padding:8px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;}
+.pdnew:hover{background:#234e75;}
+
+main{overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;}
+.panel{display:none;flex-direction:column;gap:13px;animation:fi .18s ease;}
+.panel.active{display:flex;}
+@keyframes fi{from{opacity:0;transform:translateY(3px);}to{opacity:1;transform:none;}}
+.phd{display:flex;align-items:baseline;gap:9px;border-bottom:2px solid var(--accent);padding-bottom:8px;}
+.pnum{font-family:var(--mono);font-size:10px;color:var(--accent);background:#e8f0f8;padding:2px 7px;border-radius:2px;}
+.ptit{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:13px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 3px rgba(0,0,0,.04);}
+.ctit{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--dim);text-transform:uppercase;display:flex;align-items:center;gap:7px;}
+.ctit::after{content:'';flex:1;height:1px;background:var(--border);}
+
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.fg3{grid-template-columns:1fr 1fr 1fr;}
+.fg1{grid-template-columns:1fr;}
+.field{display:flex;flex-direction:column;gap:3px;}
+label{font-family:var(--mono);font-size:8.5px;letter-spacing:.7px;color:var(--dim);text-transform:uppercase;display:flex;align-items:center;gap:5px;}
+input,textarea,select{background:var(--s2);border:1px solid var(--border);border-radius:3px;color:var(--text);font-family:var(--serif);font-size:13px;padding:6px 8px;outline:none;transition:.12s;width:100%;resize:vertical;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);background:#fff;}
+textarea{min-height:80px;line-height:1.65;}
+textarea.t{min-height:110px;}
+textarea.xt{min-height:150px;}
+textarea.xl{min-height:200px;}
+.prefilled{border-color:var(--green)!important;background:#f0f8f4!important;}
+
+/* MIC — bouton + statut visible */
+.microw{display:flex;align-items:center;gap:6px;margin-top:2px;}
+.micbtn{display:inline-flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--b2);border-radius:3px;padding:4px 8px;font-family:var(--mono);font-size:8.5px;letter-spacing:.5px;color:var(--dim);cursor:pointer;transition:.12s;flex-shrink:0;}
+.micbtn:hover{border-color:var(--accent);color:var(--accent);background:#e8f0f8;}
+.micbtn.rec{background:var(--red);border-color:var(--red);color:#fff;animation:pu .9s infinite;}
+.micstat{font-family:var(--mono);font-size:9px;color:var(--green);display:none;}
+.micstat.on{display:inline;}
+@keyframes pu{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,.35);}50%{box-shadow:0 0 0 5px rgba(192,57,43,0);}}
+
+.btn{font-family:var(--mono);font-size:9.5px;letter-spacing:1.5px;text-transform:uppercase;padding:8px 14px;border-radius:3px;border:none;cursor:pointer;transition:.12s;}
+.btnp{background:var(--accent);color:#fff;}
+.btnp:hover{background:#234e75;}
+.btns{background:var(--surface);border:1px solid var(--b2);color:var(--mid);}
+.btns:hover{border-color:var(--accent);color:var(--accent);}
+.btnw{background:#1a5276;color:#fff;}
+.btnw:hover{background:#154360;}
+.brow{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:2px;}
+
+/* IMPORT */
+.dropz{border:2px dashed var(--b2);border-radius:5px;padding:22px;text-align:center;cursor:pointer;transition:.15s;background:var(--surface);}
+.dropz:hover,.dropz.dov{border-color:var(--accent);background:#e8f0f8;}
+.dico{font-size:26px;margin-bottom:5px;}
+.dtit{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--mid);text-transform:uppercase;margin-bottom:3px;}
+.dsub{font-size:12px;color:var(--dim);margin-bottom:4px;}
+.dfmt{font-family:var(--mono);font-size:10px;color:var(--accent);}
+
+.iprog{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:12px;display:none;flex-direction:column;gap:7px;}
+.iprog.on{display:flex;}
+.iplbl{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--accent);}
+.ipbw{height:4px;background:var(--s2);border-radius:2px;}
+.ipb{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:2px;transition:width .3s;width:0;}
+.ipmsg{font-family:var(--mono);font-size:10px;color:var(--dim);}
+
+.ifile{background:var(--s2);border:1px solid var(--border);border-radius:3px;padding:7px 10px;display:flex;align-items:center;gap:7px;font-size:12px;}
+.ift{font-family:var(--mono);font-size:9px;color:var(--green);min-width:90px;text-transform:uppercase;}
+.ifok{font-family:var(--mono);font-size:9px;color:var(--green);margin-left:auto;}
+.iferr{font-family:var(--mono);font-size:9px;color:var(--red);margin-left:auto;}
+.pbanner{background:#f0f8f4;border:1px solid #a8d8c0;border-radius:4px;padding:8px 12px;font-family:var(--mono);font-size:10px;color:var(--green);}
+
+.ckg{display:flex;flex-direction:column;gap:4px;}
+.cki{display:flex;align-items:center;gap:8px;padding:5px 8px;border:1px solid var(--border);border-radius:3px;cursor:pointer;font-size:13px;transition:.1s;}
+.cki:hover{border-color:var(--accent);background:#e8f0f8;}
+.cki input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;}
+
+/* SIDEBAR */
+.sidebar{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.shd{background:var(--s2);padding:9px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.stit{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;}
+.stabs{display:flex;border-bottom:1px solid var(--border);}
+.stab{flex:1;padding:7px;background:none;border:none;font-family:var(--mono);font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:.12s;}
+.stab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.scont{flex:1;overflow-y:auto;padding:12px;}
+.sph{color:var(--dim);font-style:italic;font-size:12px;text-align:center;padding:28px 10px;line-height:1.8;}
+.sout{font-family:var(--mono);font-size:10.5px;line-height:1.85;color:var(--text);white-space:pre-wrap;}
+.sfoot{padding:8px 12px;border-top:1px solid var(--border);display:flex;gap:6px;}
+.cpbtn{font-family:var(--mono);font-size:8.5px;letter-spacing:1px;color:var(--dim);background:none;border:1px solid var(--border);border-radius:3px;padding:4px 8px;cursor:pointer;transition:.12s;}
+.cpbtn:hover{color:var(--accent);border-color:var(--accent);}
+.lbar{height:2px;background:linear-gradient(90deg,var(--accent),var(--green),var(--accent));background-size:200%;animation:sh 1.4s infinite;border-radius:2px;margin-bottom:6px;}
+@keyframes sh{0%{background-position:0%;}100%{background-position:200%;}}
+.lmsg{font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;}
+.sugb{background:#f0f8f4;border:1px solid #a8d8c0;border-radius:4px;padding:10px;margin-bottom:8px;}
+.sugt{font-family:var(--mono);font-size:7.5px;letter-spacing:2px;color:var(--green);text-transform:uppercase;margin-bottom:6px;}
+
+/* OVERLAY */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:center;justify-content:center;}
+.ov.on{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:22px;width:420px;display:flex;flex-direction:column;gap:13px;box-shadow:0 8px 32px rgba(0,0,0,.2);}
+.mtit{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--accent);text-transform:uppercase;}
+.modal p{font-size:12px;color:var(--mid);line-height:1.6;}
+.modal a{color:var(--accent);}
+.aiwrap{display:flex;gap:6px;}
+.aiwrap input{font-family:var(--mono);font-size:11px;flex:1;}
+.ast{font-family:var(--mono);font-size:10px;padding:4px 8px;border-radius:3px;}
+.ast.ok{background:#f0f8f4;color:var(--green);border:1px solid #a8d8c0;}
+.ast.no{background:#fdf3e8;color:var(--warn);border:1px solid #e8c87a;}
+
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--b2);border-radius:3px;}
+</style>
+</head>
+<body>
+
+<!-- SETTINGS -->
+<div class="ov" id="ov-s">
+  <div class="modal">
+    <div class="mtit">⚙ Paramètres</div>
+    <div id="ast-el"></div>
+    <p>Clé API Anthropic — <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
+    <div class="field"><label>Clé API</label>
+      <div class="aiwrap"><input type="password" id="k-api" placeholder="sk-ant-…"><button class="btn btnp" onclick="saveSettings()">Enregistrer</button></div>
+    </div>
+    <div class="field"><label>Médecin signataire</label><input type="text" id="k-med" placeholder="Dr RANDRIANAIVO Carole"></div>
+    <div class="field"><label>Titre</label><input type="text" id="k-tit" placeholder="Médecin pédopsychiatre — Médecin coordinateur pôle enfant"></div>
+    <div class="brow"><button class="btn btns" onclick="closeOv()">Fermer</button></div>
+  </div>
+</div>
+
+<!-- PATIENTS -->
+<div class="pdw" id="pdw">
+  <div class="pdhd"><div class="pdtit">Dossiers</div><button class="pdcl" onclick="togglePD()">✕</button></div>
+  <div class="pdlist" id="pdlist"></div>
+  <div class="pdfoot"><button class="pdnew" onclick="newPatient()">+ Nouveau dossier</button></div>
+</div>
+
+<header>
+  <div class="hbrand"><div class="hlogo">CRA</div><div class="hsub">Centre Ressource Autisme — Réunion</div></div>
+  <div class="hcenter">
+    <div class="hdoc">1er RDV Médical</div>
+    <div class="hbadge" id="hbadge">Nouveau dossier</div>
+  </div>
+  <div class="hact">
+    <button class="hbtn" onclick="togglePD()">📁 Dossiers</button>
+    <button class="hbtn" onclick="savePatient()">💾 Sauver</button>
+    <button class="hbtn" onclick="generateDoc()">⚡ Générer</button>
+    <button class="hbtn p" onclick="exportWord()">📄 Word</button>
+  </div>
+</header>
+
+<div class="app">
+<nav>
+  <div class="nsec">Démarrage</div>
+  <button class="nbtn active" id="nav-import" onclick="go('import')"><span class="ndot"></span>Import bilans</button>
+  <div class="nsec">Anamnèse</div>
+  <button class="nbtn" id="nav-motif" onclick="go('motif')"><span class="ndot"></span>Motif & identité</button>
+  <button class="nbtn" id="nav-atcd" onclick="go('atcd')"><span class="ndot"></span>Antécédents</button>
+  <button class="nbtn" id="nav-gros" onclick="go('gros')"><span class="ndot"></span>Grossesse & dév.</button>
+  <button class="nbtn" id="nav-scol" onclick="go('scol')"><span class="ndot"></span>Scolarité</button>
+  <button class="nbtn" id="nav-bil" onclick="go('bil')"><span class="ndot"></span>Bilans & rééducs</button>
+  <div class="nsec">Clinique</div>
+  <button class="nbtn" id="nav-auto" onclick="go('auto')"><span class="ndot"></span>Autonomie</button>
+  <button class="nbtn" id="nav-clin" onclick="go('clin')"><span class="ndot"></span>Clinique actuelle</button>
+  <div class="nsec">TSA</div>
+  <button class="nbtn" id="nav-adi" onclick="go('adi')"><span class="ndot"></span>ADI-R — Items</button>
+  <button class="nbtn" id="nav-tsa" onclick="go('tsa')"><span class="ndot"></span>Symptômes TSA</button>
+  <button class="nbtn" id="nav-concl" onclick="go('concl')"><span class="ndot"></span>Conclusion</button>
+  <div class="nfoot">
+    <button class="nfbtn" onclick="savePatient()">💾 Sauvegarder</button>
+    <button class="nfbtn" onclick="exportWord()">📄 Export Word</button>
+    <button class="nfbtn" onclick="openOv()">⚙ Paramètres</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- IMPORT -->
+<div class="panel active" id="panel-import">
+  <div class="phd"><span class="pnum">00</span><span class="ptit">Import des bilans — Analyse exhaustive niveau CRA-3</span></div>
+
+  <div class="card" style="background:#fff8e8;border-color:#e8c87a;">
+    <div style="font-family:var(--mono);font-size:9px;color:var(--warn);letter-spacing:1px;">MODE D'ANALYSE</div>
+    <p style="font-size:12px;color:var(--mid);line-height:1.6;">
+      Chaque fichier est lu <strong>intégralement</strong> puis analysé par l'IA avec un niveau clinique pédopsychiatrique CRA niveau 3.<br>
+      Les champs sont remplis de façon <strong>exhaustive et argumentée</strong>. Importez tous vos bilans avant de corriger.
+    </p>
+  </div>
+
+  <div class="dropz" id="dropz" onclick="document.getElementById('fi').click()"
+    ondragover="event.preventDefault();this.classList.add('dov')"
+    ondragleave="this.classList.remove('dov')"
+    ondrop="handleDrop(event)">
+    <div class="dico">📂</div>
+    <div class="dtit">Déposer les bilans ici</div>
+    <div class="dsub">PDF · DOCX · DOC · TXT — chaque fichier lu intégralement</div>
+    <div class="dfmt">ADI-R · ADOS · Bilans psychomoteurs · Neuropsycho · Ortho · Ergo · Courriers</div>
+  </div>
+  <input type="file" id="fi" multiple accept=".pdf,.doc,.docx,.txt" style="display:none" onchange="handleFiles(this.files)">
+
+  <div class="iprog" id="iprog">
+    <div class="iplbl" id="iplbl">Analyse en cours…</div>
+    <div class="ipbw"><div class="ipb" id="ipb"></div></div>
+    <div class="ipmsg" id="ipmsg"></div>
+  </div>
+
+  <div id="ilist"></div>
+  <div class="pbanner" id="pbanner" style="display:none">✦ &nbsp;Champs remplis (zones vertes) — vérifier, compléter, corriger.</div>
+
+  <div class="card">
+    <div class="ctit">Saisie manuelle / dictée</div>
+    <div class="fg">
+      <div class="field"><label>Type de bilan</label>
+        <select id="mt"><option>Orthophonie</option><option>Neuropsychologie</option><option>Psychomotricité</option><option>Ergothérapie</option><option>ADI-R</option><option>ADOS</option><option>Bilan médical</option><option>Autre</option></select>
+      </div>
+      <div class="field">
+        <label>Contenu</label>
+        <div class="microw"><button class="micbtn" onclick="startMic('mc')">🎤 Dicter</button><span class="micstat" id="mic-mc-stat">● Enregistrement…</span></div>
+        <textarea id="mc" placeholder="Saisir ou dicter les éléments…"></textarea>
+      </div>
+    </div>
+    <div class="brow"><button class="btn btns" onclick="addManual()">+ Ajouter ce bilan</button></div>
+  </div>
+  <div class="brow"><button class="btn btnp" onclick="go('motif')">Continuer →</button></div>
+</div>
+
+<!-- MOTIF -->
+<div class="panel" id="panel-motif">
+  <div class="phd"><span class="pnum">01</span><span class="ptit">Motif & Identification</span></div>
+  <div class="card">
+    <div class="ctit">Patient</div>
+    <div class="fg">
+      <div class="field"><label>Prénom / code</label><div class="microw"><button class="micbtn" onclick="startMic('p-prenom')">🎤</button><span class="micstat" id="mic-p-prenom-stat">●</span></div><input id="p-prenom" oninput="updateBadge()"></div>
+      <div class="field"><label>Nom</label><div class="microw"><button class="micbtn" onclick="startMic('p-nom')">🎤</button><span class="micstat" id="mic-p-nom-stat">●</span></div><input id="p-nom"></div>
+      <div class="field"><label>Date de naissance</label><input type="date" id="p-ddn"></div>
+      <div class="field"><label>Âge au bilan</label><div class="microw"><button class="micbtn" onclick="startMic('p-age')">🎤</button><span class="micstat" id="mic-p-age-stat">●</span></div><input id="p-age" placeholder="11 ans 6 mois"></div>
+      <div class="field"><label>Sexe</label><select id="p-sexe"><option value="">—</option><option>Masculin</option><option>Féminin</option></select></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctit">Motif</div>
+    <div class="fg1">
+      <div class="field"><label>Demandeur</label><div class="microw"><button class="micbtn" onclick="startMic('motif-dem')">🎤</button><span class="micstat" id="mic-motif-dem-stat">●</span></div><input id="motif-dem"></div>
+      <div class="field"><label>Motif de la demande</label><div class="microw"><button class="micbtn" onclick="startMic('motif-txt')">🎤</button><span class="micstat" id="mic-motif-txt-stat">●</span></div><textarea id="motif-txt"></textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctit">Mode de vie</div>
+    <div class="fg">
+      <div class="field"><label>Situation familiale</label><div class="microw"><button class="micbtn" onclick="startMic('v-fam')">🎤</button><span class="micstat" id="mic-v-fam-stat">●</span></div><textarea id="v-fam"></textarea></div>
+      <div class="field"><label>Lieu / contexte</label><div class="microw"><button class="micbtn" onclick="startMic('v-lieu')">🎤</button><span class="micstat" id="mic-v-lieu-stat">●</span></div><textarea id="v-lieu"></textarea></div>
+    </div>
+  </div>
+  <div class="brow"><button class="btn btns" onclick="go('import')">← Retour</button><button class="btn btnp" onclick="go('atcd')">Suivant →</button></div>
+</div>
+
+<!-- ATCD -->
+<div class="panel" id="panel-atcd">
+  <div class="phd"><span class="pnum">02</span><span class="ptit">Antécédents</span></div>
+  <div class="card">
+    <div class="ctit">Antécédents familiaux</div>
+    <div class="field"><label>Familiaux (TSA, TND, psychiatriques, neurologiques…)</label><div class="microw"><button class="micbtn" onclick="startMic('a-fam')">🎤</button><span class="micstat" id="mic-a-fam-stat">●</span></div><textarea class="t" id="a-fam"></textarea></div>
+  </div>
+  <div class="card">
+    <div class="ctit">Antécédents personnels</div>
+    <div class="fg">
+      <div class="field"><label>Diagnostics médicaux antérieurs</label><div class="microw"><button class="micbtn" onclick="startMic('a-diag')">🎤</button><span class="micstat" id="mic-a-diag-stat">●</span></div><textarea id="a-diag"></textarea></div>
+      <div class="field"><label>Diagnostics paramédicaux antérieurs</label><div class="microw"><button class="micbtn" onclick="startMic('a-para')">🎤</button><span class="micstat" id="mic-a-para-stat">●</span></div><textarea id="a-para"></textarea></div>
+      <div class="field"><label>Traitements actuels</label><div class="microw"><button class="micbtn" onclick="startMic('a-tact')">🎤</button><span class="micstat" id="mic-a-tact-stat">●</span></div><textarea id="a-tact"></textarea></div>
+      <div class="field"><label>Traitements passés</label><div class="microw"><button class="micbtn" onclick="startMic('a-tpass')">🎤</button><span class="micstat" id="mic-a-tpass-stat">●</span></div><textarea id="a-tpass"></textarea></div>
+    </div>
+  </div>
+  <div class="brow"><button class="btn btns" onclick="go('motif')">← Retour</button><button class="btn btnp" onclick="go('gros')">Suivant →</button></div>
+</div>
+
+<!-- GROSSESSE -->
+<div class="panel" id="panel-gros">
+  <div class="phd"><span class="pnum">03</span><span class="ptit">Grossesse & Développement précoce</span></div>
+  <div class="card">
+    <div class="ctit">Grossesse</div>
+    <div class="fg">
+      <div class="field"><label>Déroulement</label><div class="microw"><button class="micbtn" onclick="startMic('g-der')">🎤</button><span class="micstat" id="mic-g-der-stat">●</span></div><textarea id="g-der"></textarea></div>
+      <div class="field"><label>Gestation / AMP / âge parents</label><div class="microw"><button class="micbtn" onclick="startMic('g-gest')">🎤</button><span class="micstat" id="mic-g-gest-stat">●</span></div><textarea id="g-gest"></textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctit">Accouchement & Néonatal</div>
+    <div class="fg3">
+      <div class="field"><label>Mode</label><input id="n-mode"></div>
+      <div class="field"><label>SA</label><input id="n-sa"></div>
+      <div class="field"><label>APGAR 1'/5'</label><input id="n-apgar"></div>
+      <div class="field"><label>Poids (kg)</label><input id="n-poids"></div>
+      <div class="field"><label>Taille (cm)</label><input id="n-taille"></div>
+      <div class="field"><label>PC (cm)</label><input id="n-pc"></div>
+    </div>
+    <div class="field"><label>Pathologie néonatale / carnet de santé</label><div class="microw"><button class="micbtn" onclick="startMic('n-patho')">🎤</button><span class="micstat" id="mic-n-patho-stat">●</span></div><textarea id="n-patho"></textarea></div>
+  </div>
+  <div class="card">
+    <div class="ctit">Développement précoce — items critiques TSA</div>
+    <div class="fg">
+      <div class="field"><label>Premiers mots (âge, contexte, usage)</label><div class="microw"><button class="micbtn" onclick="startMic('d-mots')">🎤</button><span class="micstat" id="mic-d-mots-stat">●</span></div><textarea id="d-mots" placeholder="Âge acquisition, premiers mots, caractéristiques…"></textarea></div>
+      <div class="field"><label>Premières phrases (âge, structure)</label><div class="microw"><button class="micbtn" onclick="startMic('d-phrases')">🎤</button><span class="micstat" id="mic-d-phrases-stat">●</span></div><textarea id="d-phrases" placeholder="Âge, structure des premières phrases, écholalies…"></textarea></div>
+      <div class="field"><label>Socialisation précoce</label><div class="microw"><button class="micbtn" onclick="startMic('d-soc')">🎤</button><span class="micstat" id="mic-d-soc-stat">●</span></div><textarea id="d-soc" placeholder="Regard, sourire social, attention conjointe, pointage, jeu symbolique, imitation…"></textarea></div>
+      <div class="field"><label>Régression / perte d'acquis</label><div class="microw"><button class="micbtn" onclick="startMic('d-reg')">🎤</button><span class="micstat" id="mic-d-reg-stat">●</span></div><textarea id="d-reg" placeholder="Régression langagière, sociale, avant 36 mois…"></textarea></div>
+      <div class="field"><label>Développement moteur</label><div class="microw"><button class="micbtn" onclick="startMic('d-mot')">🎤</button><span class="micstat" id="mic-d-mot-stat">●</span></div><textarea id="d-mot" placeholder="Station assise, marche, motricité fine et globale, particularités…"></textarea></div>
+      <div class="field"><label>Alimentation / nuits / tonus / garde</label><div class="microw"><button class="micbtn" onclick="startMic('d-garde')">🎤</button><span class="micstat" id="mic-d-garde-stat">●</span></div><textarea id="d-garde"></textarea></div>
+      <div class="field"><label>Propreté — contrôle vésical / sphinctérien</label><div class="microw"><button class="micbtn" onclick="startMic('d-prop')">🎤</button><span class="micstat" id="mic-d-prop-stat">●</span></div><textarea id="d-prop" placeholder="Âge acquisitions, difficultés, accidents actuels…"></textarea></div>
+      <div class="field"><label>Premières inquiétudes parentales (âge, domaine)</label><div class="microw"><button class="micbtn" onclick="startMic('d-inq')">🎤</button><span class="micstat" id="mic-d-inq-stat">●</span></div><textarea id="d-inq" placeholder="Âge, domaine d'inquiétude, démarches initiales…"></textarea></div>
+    </div>
+  </div>
+  <div class="brow"><button class="btn btns" onclick="go('atcd')">← Retour</button><button class="btn btnp" onclick="go('scol')">Suivant →</button></div>
+</div>
+
+<!-- SCOLARITE -->
+<div class="panel" id="panel-scol">
+  <div class="phd"><span class="pnum">04</span><span class="ptit">Cursus scolaire</span></div>
+  <div class="card">
+    <div class="fg">
+      <div class="field"><label>Maternelle</label><div class="microw"><button class="micbtn" onclick="startMic('s-mat')">🎤</button><span class="micstat" id="mic-s-mat-stat">●</span></div><textarea id="s-mat"></textarea></div>
+      <div class="field"><label>Primaire</label><div class="microw"><button class="micbtn" onclick="startMic('s-prim')">🎤</button><span class="micstat" id="mic-s-prim-stat">●</span></div><textarea id="s-prim"></textarea></div>
+      <div class="field"><label>Collège / Lycée</label><div class="microw"><button class="micbtn" onclick="startMic('s-coll')">🎤</button><span class="micstat" id="mic-s-coll-stat">●</span></div><textarea id="s-coll"></textarea></div>
+      <div class="field"><label>Situation scolaire actuelle</label><div class="microw"><button class="micbtn" onclick="startMic('s-act')">🎤</button><span class="micstat" id="mic-s-act-stat">●</span></div><textarea id="s-act"></textarea></div>
+      <div class="field"><label>Apprentissages (lecture / écriture / calcul)</label><div class="microw"><button class="micbtn" onclick="startMic('s-app')">🎤</button><span class="micstat" id="mic-s-app-stat">●</span></div><textarea id="s-app"></textarea></div>
+      <div class="field"><label>ESS / GEVASCO / MDPH / notifications</label><div class="microw"><button class="micbtn" onclick="startMic('s-mdph')">🎤</button><span class="micstat" id="mic-s-mdph-stat">●</span></div><textarea id="s-mdph"></textarea></div>
+    </div>
+  </div>
+  <div class="brow"><button class="btn btns" onclick="go('gros')">← Retour</button><button class="btn btnp" onclick="go('bil')">Suivant →</button></div>
+</div>
+
+<!-- BILANS -->
+<div class="panel" id="panel-bil">
+  <div class="phd"><span class="pnum">05</span><span class="ptit">Bilans & Rééducations</span></div>
+  <div class="card">
+    <div class="ctit">Bilans paramédicaux — synthèse</div>
+    <div class="fg">
+      <div class="field"><label>Bilan psychomoteur</label><div class="microw"><button class="micbtn" onclick="startMic('b-psm')">🎤</button><span class="micstat" id="mic-b-psm-stat">●</span></div><textarea class="t" id="b-psm"></textarea></div>
+      <div class="field"><label>Bilan psychologique / neuropsychologique</label><div class="microw"><button class="micbtn" onclick="startMic('b-psy')">🎤</button><span class="micstat" id="mic-b-psy-stat">●</span></div><textarea class="t" id="b-psy"></textarea></div>
+      <div class="field"><label>Bilan orthophonique</label><div class="microw"><button class="micbtn" onclick="startMic('b-orth')">🎤</button><span class="micstat" id="mic-b-orth-stat">●</span></div><textarea class="t" id="b-orth"></textarea></div>
+      <div class="field"><label>Bilan ergothérapeutique</label><div class="microw"><button class="micbtn" onclick="startMic('b-ergo')">🎤</button><span class="micstat" id="mic-b-ergo-stat">●</span></div><textarea class="t" id="b-ergo"></textarea></div>
+      <div class="field"><label>Bilan éducateur spécialisé</label><div class="microw"><button class="micbtn" onclick="startMic('b-educ')">🎤</button><span class="micstat" id="mic-b-educ-stat">●</span></div><textarea id="b-educ"></textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctit">Bilans médicaux & MDPH</div>
+    <div class="fg">
+      <div class="field"><label>Bilans médicaux réalisés (EEG, IRM, génétique…)</label><div class="microw"><button class="micbtn" onclick="startMic('b-med')">🎤</button><span class="micstat" id="mic-b-med-stat">●</span></div><textarea id="b-med"></textarea></div>
+      <div class="field"><label>ALD / MDPH / notifications en cours</label><div class="microw"><button class="micbtn" onclick="startMic('b-ald')">🎤</button><span class="micstat" id="mic-b-ald-stat">●</span></div><textarea id="b-ald"></textarea></div>
+    </div>
+  </div>
+  <div class="brow"><button class="btn btns" onclick="go('scol')">← Retour</button><button class="btn btnp" onclick="go('auto')">Suivant →</button></div>
+</div>
+
+<!-- AUTONOMIE -->
+<div class="panel" id="panel-auto">
+  <div class="phd"><span class="pnum">06</span><span class="ptit">Autonomie & Comportement</span></div>
+  <div class="card">
+    <div class="fg">
+      <div class="field"><label>Alimentation / sélectivité</label><div class="microw"><button class="micbtn" onclick="startMic('au-alim')">🎤</button><span class="micstat" id="mic-au-alim-stat">●</span></div><textarea id="au-alim"></textarea></div>
+      <div class="field"><label>Hygiène / toilettes</label><div class="microw"><button class="micbtn" onclick="startMic('au-hyg')">🎤</button><span class="micstat" id="mic-au-hyg-stat">●</span></div><textarea id="au-hyg"></textarea></div>
+      <div class="field"><label>Habillage / déshabillage</label><div class="microw"><button class="micbtn" onclick="startMic('au-hab')">🎤</button><span class="micstat" id="mic-au-hab-stat">●</span></div><textarea id="au-hab"></textarea></div>
+      <div class="field"><label>Orientation temporo-spatiale</label><div class="microw"><button class="micbtn" onclick="startMic('au-ori')">🎤</button><span class="micstat" id="mic-au-ori-stat">●</span></div><textarea id="au-ori"></textarea></div>
+      <div class="field"><label>Déplacements / conscience du danger</label><div class="microw"><button class="micbtn" onclick="startMic('au-dep')">🎤</button><span class="micstat" id="mic-au-dep-stat">●</span></div><textarea id="au-dep"></textarea></div>
+      <div class="field"><label>Énurésie / Encoprésie actuelle</label><div class="microw"><button class="micbtn" onclick="startMic('au-enur')">🎤</button><span class="micstat" id="mic-au-enur-stat">●</span></div><textarea id="au-enur"></textarea></div>
+      <div class="field"><label>Troubles du comportement</label><div class="microw"><button class="micbtn" onclick="startMic('au-tc')">🎤</button><span class="micstat" id="mic-au-tc-stat">●</span></div><textarea id="au-tc"></textarea></div>
+      <div class="field"><label>Sommeil</label><div class="microw"><button class="micbtn" onclick="startMic('au-som')">🎤</button><span class="micstat" id="mic-au-som-stat">●</span></div><textarea id="au-som"></textarea></div>
+    </div>
+  </div>
+  <div class="brow"><button class="btn btns" onclick="go('bil')">← Retour</button><button class="btn btnp" onclick="go('clin')">Suivant →</button></div>
+</div>
+
+<!-- CLINIQUE -->
+<div class="panel" id="panel-clin">
+  <div class="phd"><span class="pnum">07</span><span class="ptit">Clinique actuelle</span></div>
+  <div class="card">
+    <div class="fg">
+      <div class="field"><label>Humeur</label><div class="microw"><button class="micbtn" onclick="startMic('cl-hum')">🎤</button><span class="micstat" id="mic-cl-hum-stat">●</span></div><textarea id="cl-hum"></textarea></div>
+      <div class="field"><label>Sommeil</label><div class="microw"><button class="micbtn" onclick="startMic('cl-som')">🎤</button><span class="micstat" id="mic-cl-som-stat">●</span></div><textarea id="cl-som"></textarea></div>
+      <div class="field"><label>Appétit</label><div class="microw"><button class="micbtn" onclick="startMic('cl-app')">🎤</button><span class="micstat" id="mic-cl-app-stat">●</span></div><textarea id="cl-app"></textarea></div>
+      <div class="field"><label>Anxiété</label><div class="microw"><button class="micbtn" onclick="startMic('cl-anx')">🎤</button><span class="micstat" id="mic-cl-anx-stat">●</span></div><textarea id="cl-anx"></textarea></div>
+      <div class="field"><label>Symptômes psychotiques</label><div class="microw"><button class="micbtn" onclick="startMic('cl-psy')">🎤</button><span class="micstat" id="mic-cl-psy-stat">●</span></div><textarea id="cl-psy"></textarea></div>
+      <div class="field"><label>TDAH / TOCs / Tics / addictions</label><div class="microw"><button class="micbtn" onclick="startMic('cl-tdah')">🎤</button><span class="micstat" id="mic-cl-tdah-stat">●</span></div><textarea id="cl-tdah"></textarea></div>
+      <div class="field"><label>TOP / Troubles des conduites</label><div class="microw"><button class="micbtn" onclick="startMic('cl-top')">🎤</button><span class="micstat" id="mic-cl-top-stat">●</span></div><textarea id="cl-top"></textarea></div>
+      <div class="field"><label>Traumatisme / TCA / automutilation</label><div class="microw"><button class="micbtn" onclick="startMic('cl-tra')">🎤</button><span class="micstat" id="mic-cl-tra-stat">●</span></div><textarea id="cl-tra"></textarea></div>
+      <div class="field"><label>Retentissement intra-familial / scolaire</label><div class="microw"><button class="micbtn" onclick="startMic('cl-ret')">🎤</button><span class="micstat" id="mic-cl-ret-stat">●</span></div><textarea id="cl-ret"></textarea></div>
+      <div class="field"><label>Inquiétudes parentales actuelles</label><div class="microw"><button class="micbtn" onclick="startMic('cl-par')">🎤</button><span class="micstat" id="mic-cl-par-stat">●</span></div><textarea id="cl-par"></textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctit">Examen clinique</div>
+    <div class="fg">
+      <div class="field"><label>Particularités motrices / stéréotypies</label><div class="microw"><button class="micbtn" onclick="startMic('ex-mot')">🎤</button><span class="micstat" id="mic-ex-mot-stat">●</span></div><textarea id="ex-mot"></textarea></div>
+      <div class="field"><label>Particularités morphologiques / dysmorphies</label><div class="microw"><button class="micbtn" onclick="startMic('ex-mor')">🎤</button><span class="micstat" id="mic-ex-mor-stat">●</span></div><textarea id="ex-mor"></textarea></div>
+    </div>
+  </div>
+  <div class="brow"><button class="btn btns" onclick="go('auto')">← Retour</button><button class="btn btnp" onclick="go('adi')">Suivant →</button></div>
+</div>
+
+<!-- ADI-R ITEMS -->
+<div class="panel" id="panel-adi">
+  <div class="phd"><span class="pnum">08</span><span class="ptit">ADI-R — Items détaillés</span></div>
+
+  <div class="card">
+    <div class="ctit">A — Interaction sociale réciproque</div>
+    <div class="fg1">
+      <div class="field"><label>A1 — Comportements non verbaux pour moduler l'interaction (regard, sourire, expressions)</label><div class="microw"><button class="micbtn" onclick="startMic('adi-a1')">🎤</button><span class="micstat" id="mic-adi-a1-stat">●</span></div><textarea class="t" id="adi-a1" placeholder="Passé (4-5 ans) vs actuel. Score algorithme diag / actuel…"></textarea></div>
+      <div class="field"><label>A2 — Développement des relations avec les pairs (jeux, intérêt, amitié)</label><div class="microw"><button class="micbtn" onclick="startMic('adi-a2')">🎤</button><span class="micstat" id="mic-adi-a2-stat">●</span></div><textarea class="t" id="adi-a2"></textarea></div>
+      <div class="field"><label>A3 — Plaisir partagé (montrer, diriger l'attention, offres de partage)</label><div class="microw"><button class="micbtn" onclick="startMic('adi-a3')">🎤</button><span class="micstat" id="mic-adi-a3-stat">●</span></div><textarea class="t" id="adi-a3"></textarea></div>
+      <div class="field"><label>A4 — Réciprocité socio-émotionnelle (corps de l'autre, réconfort, ouvertures sociales)</label><div class="microw"><button class="micbtn" onclick="startMic('adi-a4')">🎤</button><span class="micstat" id="mic-adi-a4-stat">●</span></div><textarea class="t" id="adi-a4"></textarea></div>
+    </div>
+    <div class="fg">
+      <div class="field"><label>Score A — algorithme diag (seuil ≥10)</label><input id="adi-sa-diag" placeholder="ex. 24"></div>
+      <div class="field"><label>Score A — comportement actuel</label><input id="adi-sa-act" placeholder="ex. 14"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctit">B — Communication</div>
+    <div class="fg1">
+      <div class="field"><label>B1 — Retard de langage parlé / compensation gestuelle (pointage, gestes conv., prosodie)</label><div class="microw"><button class="micbtn" onclick="startMic('adi-b1')">🎤</button><span class="micstat" id="mic-adi-b1-stat">●</span></div><textarea class="t" id="adi-b1"></textarea></div>
+      <div class="field"><label>B2 — Initier / soutenir un échange conversationnel (bavardage social, réciprocité)</label><div class="microw"><button class="micbtn" onclick="startMic('adi-b2')">🎤</button><span class="micstat" id="mic-adi-b2-stat">●</span></div><textarea class="t" id="adi-b2"></textarea></div>
+      <div class="field"><label>B3 — Discours stéréotypé / répétitif / idiosyncrasique (écholalies, inversion pron., néologismes)</label><div class="microw"><button class="micbtn" onclick="startMic('adi-b3')">🎤</button><span class="micstat" id="mic-adi-b3-stat">●</span></div><textarea class="t" id="adi-b3"></textarea></div>
+      <div class="field"><label>B4 — Jeux de faire semblant / imitation sociale</label><div class="microw"><button class="micbtn" onclick="startMic('adi-b4')">🎤</button><span class="micstat" id="mic-adi-b4-stat">●</span></div><textarea class="t" id="adi-b4"></textarea></div>
+    </div>
+    <div class="fg">
+      <div class="field"><label>Score B — algorithme diag verbal (seuil ≥8)</label><input id="adi-sb-diag" placeholder="ex. 18"></div>
+      <div class="field"><label>Score B — comportement actuel</label><input id="adi-sb-act" placeholder="ex. 8"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctit">C — Comportements restreints, répétitifs et stéréotypés</div>
+    <div class="fg1">
+      <div class="field"><label>C1 — Préoccupations envahissantes / intérêts restreints</label><div class="microw"><button class="micbtn" onclick="startMic('adi-c1')">🎤</button><span class="micstat" id="mic-adi-c1-stat">●</span></div><textarea class="t" id="adi-c1"></textarea></div>
+      <div class="field"><label>C2 — Routines / rituels non fonctionnels (résistance aux changements)</label><div class="microw"><button class="micbtn" onclick="startMic('adi-c2')">🎤</button><span class="micstat" id="mic-adi-c2-stat">●</span></div><textarea id="adi-c2"></textarea></div>
+      <div class="field"><label>C3 — Maniérismes moteurs stéréotypés (mains, corps, démarche)</label><div class="microw"><button class="micbtn" onclick="startMic('adi-c3')">🎤</button><span class="micstat" id="mic-adi-c3-stat">●</span></div><textarea id="adi-c3"></textarea></div>
+      <div class="field"><label>C4 — Parties d'objets / intérêts sensoriels inhabituels</label><div class="microw"><button class="micbtn" onclick="startMic('adi-c4')">🎤</button><span class="micstat" id="mic-adi-c4-stat">●</span></div><textarea id="adi-c4"></textarea></div>
+    </div>
+    <div class="fg">
+      <div class="field"><label>Score C — algorithme diag (seuil ≥3)</label><input id="adi-sc-diag" placeholder="ex. 6"></div>
+      <div class="field"><label>Score C — comportement actuel</label><input id="adi-sc-act" placeholder="ex. 8"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctit">D — Anomalies développementales avant 36 mois</div>
+    <div class="fg1">
+      <div class="field"><label>Développement anormal avant 36 mois (domaine, âge, manifestations)</label><div class="microw"><button class="micbtn" onclick="startMic('adi-d')">🎤</button><span class="micstat" id="mic-adi-d-stat">●</span></div><textarea class="t" id="adi-d"></textarea></div>
+    </div>
+    <div class="fg">
+      <div class="field"><label>Score D (seuil ≥1)</label><input id="adi-sd" placeholder="ex. 5"></div>
+      <div class="field"><label>Conclusion algorithmique ADI-R</label><input id="adi-concl" placeholder="ex. Seuils dépassés — TSA confirmé"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ctit">Autres données ADI-R / observations cliniques</div>
+    <div class="field"><label>Agressivité / automutilation / épilepsie / autres</label><div class="microw"><button class="micbtn" onclick="startMic('adi-autres')">🎤</button><span class="micstat" id="mic-adi-autres-stat">●</span></div><textarea id="adi-autres"></textarea></div>
+  </div>
+
+  <div class="brow"><button class="btn btns" onclick="go('clin')">← Retour</button><button class="btn btnp" onclick="go('tsa')">Suivant →</button></div>
+</div>
+
+<!-- TSA -->
+<div class="panel" id="panel-tsa">
+  <div class="phd"><span class="pnum">09</span><span class="ptit">Symptomatologie TSA — Consultation médicale</span></div>
+  <div class="card">
+    <div class="field"><label>Avis des parents sur le TSA</label><div class="microw"><button class="micbtn" onclick="startMic('t-avis')">🎤</button><span class="micstat" id="mic-t-avis-stat">●</span></div><textarea id="t-avis"></textarea></div>
+  </div>
+  <div class="card">
+    <div class="ctit">Signes sociaux (clinique actuelle)</div>
+    <div class="fg">
+      <div class="field"><label>Réciprocité émotionnelle</label><div class="microw"><button class="micbtn" onclick="startMic('t-rec')">🎤</button><span class="micstat" id="mic-t-rec-stat">●</span></div><textarea id="t-rec"></textarea></div>
+      <div class="field"><label>Comportements non verbaux</label><div class="microw"><button class="micbtn" onclick="startMic('t-cnv')">🎤</button><span class="micstat" id="mic-t-cnv-stat">●</span></div><textarea id="t-cnv"></textarea></div>
+      <div class="field"><label>Développement / maintien / compréhension des relations</label><div class="microw"><button class="micbtn" onclick="startMic('t-rel')">🎤</button><span class="micstat" id="mic-t-rel-stat">●</span></div><textarea id="t-rel"></textarea></div>
+      <div class="field"><label>Aspects cognitifs (ToM, abstraction, flexibilité)</label><div class="microw"><button class="micbtn" onclick="startMic('t-cogn')">🎤</button><span class="micstat" id="mic-t-cogn-stat">●</span></div><textarea id="t-cogn"></textarea></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctit">Signes non sociaux</div>
+    <div class="fg">
+      <div class="field"><label>Caractère stéréotypé / répétitif</label><div class="microw"><button class="micbtn" onclick="startMic('t-ste')">🎤</button><span class="micstat" id="mic-t-ste-stat">●</span></div><textarea id="t-ste"></textarea></div>
+      <div class="field"><label>Attachement à l'immuabilité / résistance</label><div class="microw"><button class="micbtn" onclick="startMic('t-imm')">🎤</button><span class="micstat" id="mic-t-imm-stat">●</span></div><textarea id="t-imm"></textarea></div>
+      <div class="field"><label>Intérêts restreints</label><div class="microw"><button class="micbtn" onclick="startMic('t-int')">🎤</button><span class="micstat" id="mic-t-int-stat">●</span></div><textarea id="t-int"></textarea></div>
+      <div class="field"><label>Sensorialité (hyper/hyposensibilité par modalité)</label><div class="microw"><button class="micbtn" onclick="startMic('t-sen')">🎤</button><span class="micstat" id="mic-t-sen-stat">●</span></div><textarea id="t-sen"></textarea></div>
+    </div>
+  </div>
+  <div class="brow"><button class="btn btns" onclick="go('adi')">← Retour</button><button class="btn btnp" onclick="go('concl')">Suivant →</button></div>
+</div>
+
+<!-- CONCLUSION -->
+<div class="panel" id="panel-concl">
+  <div class="phd"><span class="pnum">10</span><span class="ptit">Conclusion médicale</span></div>
+  <div class="card">
+    <div class="field"><label>Conclusion médicale argumentée</label><div class="microw"><button class="micbtn" onclick="startMic('c-txt')">🎤</button><span class="micstat" id="mic-c-txt-stat">●</span></div><textarea class="xl" id="c-txt" placeholder="Synthèse clinique, orientation diagnostique, niveau de sévérité, comorbidités…"></textarea></div>
+  </div>
+  <div class="card">
+    <div class="ctit">Bilans à prescrire au CRA Réunion</div>
+    <div class="ckg">
+      <label class="cki"><input type="checkbox" id="cb-ados" checked> ADOS (préciser le module)</label>
+      <label class="cki"><input type="checkbox" id="cb-adir" checked> ADI-R</label>
+      <label class="cki"><input type="checkbox" id="cb-sens" checked> Profil sensoriel</label>
+      <label class="cki"><input type="checkbox" id="cb-nps"> Bilan neuropsychologique</label>
+      <label class="cki"><input type="checkbox" id="cb-psm"> Bilan psychomoteur</label>
+      <label class="cki"><input type="checkbox" id="cb-ergo"> Bilan ergothérapeutique</label>
+      <label class="cki"><input type="checkbox" id="cb-orth"> Bilan orthophonique</label>
+    </div>
+    <div class="field"><label>Précisions / module ADOS</label><div class="microw"><button class="micbtn" onclick="startMic('c-prec')">🎤</button><span class="micstat" id="mic-c-prec-stat">●</span></div><input id="c-prec"></div>
+    <div class="field"><label>Autres bilans</label><div class="microw"><button class="micbtn" onclick="startMic('c-aut')">🎤</button><span class="micstat" id="mic-c-aut-stat">●</span></div><textarea id="c-aut"></textarea></div>
+  </div>
+  <div class="brow">
+    <button class="btn btns" onclick="go('tsa')">← Retour</button>
+    <button class="btn btnp" onclick="generateDoc()">⚡ Générer CR</button>
+    <button class="btn btnw" onclick="exportWord()">📄 Export Word</button>
+  </div>
+</div>
+
+</main>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="shd"><div class="stit">Document</div><button class="cpbtn" onclick="copyOut()">Copier</button></div>
+  <div class="stabs">
+    <button class="stab active" onclick="switchTab('doc',this)">CR Médical</button>
+    <button class="stab" onclick="switchTab('sug',this)">Plan de soins</button>
+  </div>
+  <div class="scont" id="sc-doc">
+    <div class="sph" id="sph">Importez les bilans puis<br>cliquez <em>⚡ Générer</em><br>ou <em>📄 Word</em></div>
+    <div class="sout" id="sout" style="display:none"></div>
+  </div>
+  <div class="scont" id="sc-sug" style="display:none">
+    <div class="sph" id="sph-s">Plan de soins après génération.</div>
+    <div id="sug-c" style="display:none"></div>
+  </div>
+  <div class="sfoot">
+    <button class="btn btnp" style="flex:1;font-size:8.5px" onclick="generateDoc()" id="gbtn">⚡ Générer</button>
+    <button class="btn btnw" style="flex:1;font-size:8.5px" onclick="exportWord()">📄 Word</button>
+    <button class="btn btns" style="flex:1;font-size:8.5px" onclick="copyOut()">Copier</button>
+  </div>
+</div>
+</div><!-- /app -->
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PDF.js
+// ═══════════════════════════════════════════════════════════
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ═══════════════════════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════════════════════
+const LS=k=>localStorage.getItem(k)||'';
+const SS=(k,v)=>localStorage.setItem(k,v);
+function getKey(){return LS('cra_key');}
+function getMed(){return LS('cra_med')||'Dr RANDRIANAIVO Carole';}
+function getTit(){return LS('cra_tit')||'Médecin pédopsychiatre — Médecin coordinateur pôle enfant';}
+function saveSettings(){
+  const k=document.getElementById('k-api').value.trim();
+  if(k)SS('cra_key',k);
+  SS('cra_med',document.getElementById('k-med').value.trim()||getMed());
+  SS('cra_tit',document.getElementById('k-tit').value.trim()||getTit());
+  updateAST();closeOv();
+}
+function openOv(){
+  document.getElementById('k-api').value=getKey();
+  document.getElementById('k-med').value=getMed();
+  document.getElementById('k-tit').value=getTit();
+  updateAST();
+  document.getElementById('ov-s').classList.add('on');
+}
+function closeOv(){document.getElementById('ov-s').classList.remove('on');}
+function updateAST(){
+  document.getElementById('ast-el').innerHTML=getKey()
+    ?'<div class="ast ok">✓ Clé API enregistrée</div>'
+    :'<div class="ast no">⚠ Aucune clé API — fonctions IA indisponibles</div>';
+}
+window.addEventListener('load',()=>{
+  updateAST();
+  if(!getKey())setTimeout(openOv,400);
+  renderPatients();
+});
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function go(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  const nb=document.getElementById('nav-'+id);
+  if(nb)nb.classList.add('active');
+  document.querySelector('main').scrollTo(0,0);
+}
+function switchTab(t,btn){
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('sc-doc').style.display=t==='doc'?'':'none';
+  document.getElementById('sc-sug').style.display=t==='sug'?'':'none';
+}
+function updateBadge(){document.getElementById('hbadge').textContent=document.getElementById('p-prenom').value.trim()||'Nouveau dossier';}
+
+// ═══════════════════════════════════════════════════════════
+// DICTÉE — VERSION ROBUSTE
+// Gestion permission micro, transcription temps réel, arrêt propre
+// ═══════════════════════════════════════════════════════════
+let activeRec=null, activeBtn=null, activeTarget=null, micBase='', micInterim='';
+
+async function startMic(targetId){
+  // Si déjà actif sur ce champ → arrêter
+  if(activeRec && activeTarget===targetId){
+    activeRec.stop();
+    return;
+  }
+  // Si actif sur autre champ → arrêter l'autre d'abord
+  if(activeRec){ activeRec.stop(); await new Promise(r=>setTimeout(r,200)); }
+
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ alert('Dictée vocale : Chrome ou Edge requis.'); return; }
+
+  const el=document.getElementById(targetId);
+  if(!el){ console.error('Champ introuvable:',targetId); return; }
+
+  // Demander la permission micro explicitement d'abord
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    stream.getTracks().forEach(t=>t.stop()); // On n'en a pas besoin, juste déclencher la permission
+  } catch(permErr){
+    alert('Accès microphone refusé.\n\nDans Chrome : cliquez sur l\'icône 🔒 (ou 🎤) dans la barre d\'adresse → Autoriser le microphone.\nOu ouvrez chrome://settings/content/microphone');
+    return;
+  }
+
+  const btnEl=document.querySelector(`[onclick="startMic('${targetId}')"]`);
+  const statEl=document.getElementById('mic-'+targetId+'-stat');
+
+  const rec=new SR();
+  rec.lang='fr-FR';
+  rec.continuous=true;
+  rec.interimResults=true;
+  rec.maxAlternatives=1;
+
+  micBase=el.value ? el.value+(el.value.endsWith(' ')?'':' ') : '';
+  micInterim='';
+
+  rec.onstart=()=>{
+    activeRec=rec; activeBtn=btnEl; activeTarget=targetId;
+    if(btnEl){ btnEl.classList.add('rec'); btnEl.innerHTML='⏹ Stop'; }
+    if(statEl){ statEl.textContent='● Écoute…'; statEl.classList.add('on'); }
+  };
+
+  rec.onresult=e=>{
+    micInterim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      if(e.results[i].isFinal){
+        micBase+=e.results[i][0].transcript+' ';
+      } else {
+        micInterim+=e.results[i][0].transcript;
+      }
+    }
+    el.value=micBase+micInterim;
+    el.scrollTop=el.scrollHeight;
+    // Afficher interim dans statut
+    if(statEl && micInterim) statEl.textContent='● '+micInterim.substring(0,40)+(micInterim.length>40?'…':'');
+  };
+
+  rec.onerror=ev=>{
+    console.error('SpeechRec error:',ev.error);
+    if(ev.error==='not-allowed'||ev.error==='service-not-allowed'){
+      alert('Microphone non autorisé. Autorisez-le dans les paramètres du navigateur.');
+    } else if(ev.error==='network'){
+      // La reconnaissance vocale web nécessite internet
+      alert('Erreur réseau : la dictée vocale web nécessite une connexion internet active.');
+    }
+    doStopMic();
+  };
+
+  rec.onend=()=>{
+    // Valider interim résiduel
+    if(micInterim){ micBase+=micInterim+' '; el.value=micBase; micInterim=''; }
+    doStopMic();
+  };
+
+  try{
+    rec.start();
+  } catch(e){
+    console.error('rec.start():',e);
+    doStopMic();
+    alert('Impossible de démarrer. '+e.message);
+  }
+}
+
+function doStopMic(){
+  if(activeBtn){ activeBtn.classList.remove('rec'); activeBtn.innerHTML='🎤'; }
+  const s=activeTarget?document.getElementById('mic-'+activeTarget+'-stat'):null;
+  if(s){ s.classList.remove('on'); s.textContent='●'; }
+  if(activeRec){ try{activeRec.stop();}catch(e){} }
+  activeRec=null; activeBtn=null; activeTarget=null; micBase=''; micInterim='';
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXTRACTION FICHIERS
+// ═══════════════════════════════════════════════════════════
+let bilans=[];
+
+async function extractPDF(file){
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let txt='';
+  for(let i=1;i<=pdf.numPages;i++){
+    const pg=await pdf.getPage(i);
+    const ct=await pg.getTextContent();
+    txt+=ct.items.map(x=>x.str).join(' ')+'\n';
+  }
+  return txt;
+}
+async function extractDOCX(file){
+  const buf=await file.arrayBuffer();
+  const r=await mammoth.extractRawText({arrayBuffer:buf});
+  return r.value;
+}
+async function extractTXT(file){
+  return new Promise(res=>{const r=new FileReader();r.onload=e=>res(e.target.result||'');r.onerror=()=>res('');r.readAsText(file,'UTF-8');});
+}
+async function extractFile(file){
+  const n=file.name.toLowerCase();
+  if(n.endsWith('.pdf'))return extractPDF(file);
+  if(n.endsWith('.docx')||n.endsWith('.doc'))return extractDOCX(file);
+  return extractTXT(file);
+}
+function guessType(name){
+  const n=name.toLowerCase();
+  if(n.includes('adi'))return 'ADI-R';
+  if(n.includes('ados'))return 'ADOS';
+  if(n.includes('ortho'))return 'Orthophonie';
+  if(n.includes('neuro')||n.includes('npsycho')||n.includes('cogni'))return 'Neuropsychologie';
+  if(n.includes('psychomot')||n.includes('psm'))return 'Psychomotricité';
+  if(n.includes('ergo'))return 'Ergothérapie';
+  if(n.includes('educ'))return 'Éducateur';
+  if(n.includes('psy'))return 'Psychologie';
+  return 'Bilan';
+}
+function handleDrop(e){e.preventDefault();document.getElementById('dropz').classList.remove('dov');handleFiles(e.dataTransfer.files);}
+
+// ═══════════════════════════════════════════════════════════
+// ANALYSE IA — PROMPT NIVEAU PÉDOPSYCHIATRE CRA-3
+// Un seul appel par fichier avec le texte complet
+// ═══════════════════════════════════════════════════════════
+
+const SYSTEM_PROMPT=`Tu es une pédopsychiatre expérimentée, coordinatrice médicale d'un Centre Ressource Autisme niveau 3 (CRA Réunion).
+Tu analyses des bilans cliniques avec rigueur, exhaustivité et finesse clinique de haut niveau.
+Tu maîtrises parfaitement les critères DSM-5/CIM-11 du TSA, les items de l'ADI-R et de l'ADOS, les bilans neuropsychologiques, orthophoniques, psychomoteurs.
+Quand tu extrais des informations tu les reformules avec précision clinique : tu distingues systématiquement passé (4-5 ans) et présent, tu précises les intensités, les contextes, les évolutions, les manifestations concrètes avec des exemples.
+Tu ne résumes pas superficiellement — tu analyses, tu interprètes cliniquement, tu crées une synthèse raisonnée.`;
+
+function buildAnalysisPrompt(type, text){
+  return `${SYSTEM_PROMPT}
+
+BILAN REÇU : type [${type}]
+
+MISSION : Analyser ce bilan INTÉGRALEMENT avec un niveau d'expertise CRA niveau 3.
+Extraire TOUTES les informations cliniquement pertinentes.
+Pour chaque champ fourni : rédiger une synthèse clinique complète, argumentée, avec exemples concrets issus du texte.
+Pour l'ADI-R : rédiger chaque item A1/A2/A3/A4/B1/B2/B3/B4/C1/C2/C3/C4/D séparément avec distinction petite enfance (4-5 ans) / comportement actuel, manifestations précises, scores si présents.
+Pour le développement précoce : être exhaustif sur les jalons, les âges d'acquisition, les particularités qualitatives.
+Ne PAS inventer. Mettre "" uniquement si l'info est vraiment absente du texte.
+
+Réponds UNIQUEMENT avec un objet JSON valide, sans markdown, sans texte avant/après.
+
+{
+  "p-prenom": "",
+  "p-nom": "",
+  "p-ddn": "",
+  "p-age": "",
+  "p-sexe": "",
+  "motif-dem": "",
+  "motif-txt": "synthèse argumentée du motif",
+  "v-fam": "composition familiale, contexte socio-culturel, langue parlée à la maison",
+  "v-lieu": "",
+  "a-fam": "TOUS les antécédents familiaux mentionnés (TSA, TND, psychiatrie, neurologie, génétique)",
+  "a-diag": "TOUS les diagnostics médicaux antérieurs avec dates si disponibles",
+  "a-para": "TOUS les diagnostics paramédicaux antérieurs",
+  "a-tact": "traitements actuels avec posologies si mentionnées",
+  "a-tpass": "traitements passés",
+  "g-der": "déroulement grossesse complet",
+  "g-gest": "terme, AMP, âge des parents, particularités",
+  "n-mode": "",
+  "n-sa": "",
+  "n-apgar": "",
+  "n-poids": "",
+  "n-taille": "",
+  "n-pc": "",
+  "n-patho": "pathologies néonatales, carnet de santé",
+  "d-mots": "âge précis d'apparition des premiers mots, caractéristiques qualitatives (pointage associé, contexte d'utilisation, articulation), exemples cités",
+  "d-phrases": "âge d'apparition des premières phrases à 2 puis 3 mots, structure syntaxique, exemples concrets, caractère non-écholalique ou non",
+  "d-soc": "regard social, sourire social, attention conjointe, pointage proto-déclaratif vs proto-impératif, jeu symbolique, imitation, réponse au prénom, intérêt pour les pairs — tout avec passé/actuel",
+  "d-reg": "toute régression ou perte d'acquis langagiers ou sociaux avant 36 mois, âge, durée, récupération",
+  "d-mot": "marche (âge), station assise (âge), motricité fine, tonus, démarche, particularités posturales",
+  "d-garde": "mode de garde, alimentation (sélectivité précoce, biberon, allaitement), rythmes de sommeil nourrisson, tonus, pleurs",
+  "d-prop": "contrôle vésical diurne (âge), nocturne (âge), propreté sphinctérienne (âge), accidents actuels, particularités comportementales aux toilettes",
+  "d-inq": "PREMIÈRES inquiétudes parentales : âge exact, domaine précis (langage, social, comportement), démarches entreprises, qui a orienté",
+  "s-mat": "maternelle : classe, adaptation, difficultés, signalements, RASED",
+  "s-prim": "primaire : classes redoublées, difficultés par matière, comportement classe, signalements",
+  "s-coll": "collège/lycée si applicable",
+  "s-act": "situation scolaire actuelle précise : classe, établissement ordinaire ou spécialisé",
+  "s-app": "apprentissages détaillés : lecture (niveau, décodage, compréhension), écriture (graphie, orthographe), calcul, compréhension orale, mémoire",
+  "s-mdph": "ESS, GEVASCO, PPS, AESH (nombre d'heures), PAP, MDPH (dossiers en cours), taux d'incapacité si connu",
+  "b-psm": "bilan psychomoteur : date, praticien, résultats DÉTAILLÉS (scores, percentiles, domaines évalués, conclusions)",
+  "b-psy": "bilan psychologique/neuropsychologique : date, QI total et subtests si disponibles, profil cognitif, points forts/faibles",
+  "b-orth": "bilan orthophonique : date, résultats langage oral (compréhension, expression, pragmatique), écrit si évalué, conclusions, suivi en cours",
+  "b-ergo": "bilan ergothérapeutique : date, résultats (coordination, graphomotricité, profil sensoriel), conclusions",
+  "b-educ": "bilan éducateur spécialisé : observations comportementales, jeu, interactions, adaptations",
+  "b-med": "bilans médicaux réalisés : EEG (résultat), IRM cérébrale (résultat), bilan génétique (résultat), audiométrie, ophtalmologie",
+  "b-ald": "ALD, MDPH en cours, taux d'incapacité, orientations notifiées",
+  "au-alim": "alimentation : sélectivité (aliments refusés, textures, couleurs, marques), rituels alimentaires, régression, IMC si mentionné",
+  "au-hyg": "hygiène corporelle, brossage des dents, douche, résistances sensorielles, autonomie",
+  "au-hab": "habillage/déshabillage : autonomie, difficultés sensorielles (étiquettes, textures), ordre imposé",
+  "au-ori": "orientation dans le temps (heure, jour, saison) et dans l'espace, sens du danger",
+  "au-dep": "déplacements seul ou accompagné, conscience du danger, impulsivité motrice",
+  "au-enur": "énurésie (diurne/nocturne) actuelle : fréquence, contextes déclenchants, encoprésie",
+  "au-tc": "troubles du comportement : crises, hétéro-agressivité, auto-agressivité, opposition, contextes, fréquence, intensité",
+  "au-som": "sommeil : endormissement, durée, réveils, cauchemars, rituels du coucher, résistances",
+  "cl-hum": "humeur actuelle, labilité émotionnelle, dysthymie, épisodes dépressifs",
+  "cl-som": "plaintes sommeil actuelles",
+  "cl-app": "appétit, comportement alimentaire actuel",
+  "cl-anx": "anxiété : type (généralisée, sociale, séparation, phobique), intensité, retentissement",
+  "cl-psy": "symptômes psychotiques : hallucinations, idées délirantes, dissociation — préciser absent ou présent",
+  "cl-tdah": "TDAH : inattention, hyperactivité, impulsivité — critères, contextes, retentissement. TOCs : rituels, obsessions. Tics",
+  "cl-top": "TOP : critères, contextes, retentissement. Trouble des conduites si applicable",
+  "cl-tra": "traumatismes, TCA, comportements d'automutilation, idées suicidaires si applicable",
+  "cl-ret": "retentissement sur la famille (épuisement parental, fratrie), à l'école, dans les loisirs",
+  "cl-par": "inquiétudes parentales actuelles principales, ce qui motive la demande au CRA",
+  "ex-mot": "à l'examen : stéréotypies motrices observées, démarche, tonus, particularités posturales",
+  "ex-mor": "dysmorphies, particularités morphologiques, signes évocateurs syndrome génétique",
+  "adi-a1": "A1 - Comportements non verbaux : PETITE ENFANCE (4-5 ans) : [description détaillée avec exemples]. ACTUELLEMENT : [description détaillée avec exemples]. Score A1 diag/actuel si disponible.",
+  "adi-a2": "A2 - Relations avec les pairs : PETITE ENFANCE : [jeux imaginatifs, intérêt pour pairs, jeux imitatifs, réponse à l'approche, jeu de groupe, amitiés, désinhibition — avec exemples]. ACTUELLEMENT : [idem avec exemples].",
+  "adi-a3": "A3 - Plaisir partagé : PETITE ENFANCE : [montrer, diriger attention, offres de partage, partage du plaisir]. ACTUELLEMENT : [idem avec exemples].",
+  "adi-a4": "A4 - Réciprocité socio-émotionnelle : PETITE ENFANCE : [corps de l'autre, réconfort, ouvertures sociales, expressions inadéquates, adéquation des réponses]. ACTUELLEMENT : [idem].",
+  "adi-sa-diag": "score domaine A algorithme diagnostique 4-5 ans",
+  "adi-sa-act": "score domaine A comportement actuel",
+  "adi-b1": "B1 - Langage et gestes : PETITE ENFANCE : [pointage proto-déclaratif, gestes conventionnels, niveau de langage, articulation, prosodie]. ACTUELLEMENT : [idem].",
+  "adi-b2": "B2 - Échange conversationnel : PETITE ENFANCE : [bavardage social, réciprocité conversationnelle, langage spontané]. ACTUELLEMENT : [idem avec exemples].",
+  "adi-b3": "B3 - Discours stéréotypé : PETITE ENFANCE : [écholalies, bruitages, remarques inappropriées, inversion pronominale, néologismes]. ACTUELLEMENT : [idem avec exemples].",
+  "adi-b4": "B4 - Jeux symboliques : PETITE ENFANCE : [imitation d'actions, jeux de faire semblant — fréquence, variété]. ACTUELLEMENT : [idem].",
+  "adi-sb-diag": "score domaine B algorithme diagnostique",
+  "adi-sb-act": "score domaine B comportement actuel",
+  "adi-c1": "C1 - Intérêts restreints : PETITE ENFANCE : [nature, envahissement]. ACTUELLEMENT : [nature précise des intérêts, fonctionnement, impact quotidien].",
+  "adi-c2": "C2 - Routines/rituels : rituels verbaux, compulsions, résistance aux changements, attachement aux objets — petite enfance et actuel.",
+  "adi-c3": "C3 - Maniérismes moteurs : mains/doigts, corps entier, démarche — petite enfance et actuel avec descriptions précises.",
+  "adi-c4": "C4 - Parties d'objets/sensorialité : intérêt pour parties d'objets, fascinations sensorielles (visuelle, auditive, tactile, olfactive, gustative) — petite enfance et actuel.",
+  "adi-sc-diag": "score domaine C algorithme diagnostique",
+  "adi-sc-act": "score domaine C comportement actuel",
+  "adi-d": "D - Anomalies avant 36 mois : domaine(s) atteint(s), âge de première inquiétude parentale, manifestations précises, nature de la régression si applicable.",
+  "adi-sd": "score domaine D",
+  "adi-concl": "conclusion algorithmique complète : seuils dépassés ou non pour chaque domaine, orientation diagnostique, évolution passé/actuel",
+  "adi-autres": "agressivité, automutilation, épilepsie, hyperventilation, autres",
+  "t-avis": "avis des parents sur l'hypothèse TSA : acceptation, déni, questionnement",
+  "t-rec": "réciprocité émotionnelle observée en consultation",
+  "t-cnv": "communication non verbale observée en consultation",
+  "t-rel": "relations développées/maintenues/comprises en consultation",
+  "t-cogn": "aspects cognitifs observés : ToM, pensée abstraite, humour, second degré",
+  "t-ste": "stéréotypies observées ou rapportées en consultation",
+  "t-imm": "attachement à l'immuabilité observé ou rapporté",
+  "t-int": "intérêts restreints : description clinique",
+  "t-sen": "sensorialité par modalité : visuelle, auditive, tactile, olfactive, proprioceptive, vestibulaire",
+  "c-txt": "si synthèse ou conclusion présente dans le bilan : la retranscrire fidèlement"
+}
+
+BILAN À ANALYSER :
+${text}`;
+}
+
+// Pour les fichiers très longs : découpage en chunks avec fusion intelligente
+async function analyzeFile(type, name, text, key, onProg){
+  const MAXLEN=18000; // ~5000 tokens input
+
+  if(text.length<=MAXLEN){
+    if(onProg)onProg(`Analyse IA : ${name}…`);
+    const prompt=buildAnalysisPrompt(type,text);
+    const res=await callAPI(key,prompt,2500); // 2500 tokens output pour réponses détaillées
+    const raw=(res.content||[]).map(c=>c.text||'').join('');
+    const m=raw.match(/\{[\s\S]+\}/);
+    return m?JSON.parse(m[0]):{};
+  }
+
+  // Fichier long : découper avec overlap
+  const CHUNK=17000, OVERLAP=800;
+  const chunks=[];
+  for(let i=0;i<text.length;i+=(CHUNK-OVERLAP)){
+    chunks.push(text.slice(i,i+CHUNK));
+    if(i+CHUNK>=text.length)break;
+  }
+
+  const merged={};
+  for(let ci=0;ci<chunks.length;ci++){
+    if(onProg)onProg(`${name} — analyse partie ${ci+1}/${chunks.length}…`);
+    const prompt=buildAnalysisPrompt(type,chunks[ci]);
+    try{
+      const res=await callAPI(key,prompt,2500);
+      const raw=(res.content||[]).map(c=>c.text||'').join('');
+      const m=raw.match(/\{[\s\S]+\}/);
+      if(m){
+        const f=JSON.parse(m[0]);
+        for(const[k,val]of Object.entries(f)){
+          if(val&&String(val).trim()){
+            const vt=String(val).trim();
+            if(!merged[k]){
+              merged[k]=vt;
+            } else {
+              // Fusion intelligente : ne pas dupliquer si début similaire
+              const existing=merged[k];
+              const newStart=vt.substring(0,40);
+              if(!existing.includes(newStart)){
+                // Pour les champs ADI détaillés : ajouter avec séparateur
+                if(k.startsWith('adi-')||k==='d-mots'||k==='d-soc'||k==='d-prop'){
+                  merged[k]=existing+'\n'+vt;
+                } else {
+                  merged[k]=existing+' '+vt;
+                }
+              }
+            }
+          }
+        }
+      }
+    }catch(e){console.warn('chunk error',ci,e);}
+  }
+  return merged;
+}
+
+async function handleFiles(files){
+  const arr=Array.from(files);if(!arr.length)return;
+  const key=getKey();
+  const prog=document.getElementById('iprog');
+  const bar=document.getElementById('ipb');
+  const msg=document.getElementById('ipmsg');
+  const lbl=document.getElementById('iplbl');
+  prog.classList.add('on');bar.style.width='0%';
+
+  const results=[];
+
+  for(let fi=0;fi<arr.length;fi++){
+    const f=arr[fi];
+    const type=guessType(f.name);
+    lbl.textContent=`Fichier ${fi+1}/${arr.length} — ${f.name}`;
+    msg.textContent='Extraction du texte…';
+    bar.style.width=((fi/arr.length)*8+2)+'%';
+
+    let text='';
+    try{text=await extractFile(f);}
+    catch(e){results.push({name:f.name,type,ok:false,err:e.message});continue;}
+
+    bilans.push({name:f.name,type,content:text});
+    results.push({name:f.name,type,ok:true,chars:text.length});
+    msg.textContent=`${text.length.toLocaleString()} caractères extraits.`;
+
+    if(!key){msg.textContent='Extraction OK — clé API manquante';continue;}
+
+    const baseP=(fi/arr.length)*85+10;
+    const perF=85/arr.length;
+
+    const fields=await analyzeFile(type,f.name,text,key,(pmsg)=>{
+      msg.textContent=pmsg;
+      bar.style.width=Math.min(baseP+perF*0.5,97)+'%';
+    });
+
+    // Remplir les champs
+    let filled=0;
+    for(const[fid,val]of Object.entries(fields)){
+      if(val&&String(val).trim()){
+        const el=document.getElementById(fid);
+        if(el){
+          const v=String(val).trim();
+          if(el.value){
+            if(!el.value.includes(v.substring(0,20)))el.value+='\n'+v;
+          } else {
+            el.value=v;
+          }
+          el.classList.add('prefilled');
+          filled++;
+        }
+      }
+    }
+    bar.style.width=(baseP+perF)+'%';
+    msg.textContent=`✓ ${filled} champs remplis depuis "${f.name}"`;
+  }
+
+  bar.style.width='100%';
+  lbl.textContent='Analyse terminée';
+  renderFiles(results);
+  if(bilans.length)document.getElementById('pbanner').style.display='';
+  updateBadge();
+  setTimeout(()=>prog.classList.remove('on'),3000);
+}
+
+function renderFiles(results){
+  if(!results||!results.length){document.getElementById('ilist').innerHTML='';return;}
+  document.getElementById('ilist').innerHTML=`
+    <div class="card">
+      <div class="ctit">Fichiers importés (${results.length})</div>
+      ${results.map((f,i)=>`
+        <div class="ifile">
+          <span class="ift">${f.type}</span>
+          <span style="flex:1;font-size:12px">${f.name}</span>
+          ${f.ok?`<span class="ifok">✓ ${f.chars?Math.round(f.chars/1000)+'k car.':'OK'}</span>`:`<span class="iferr">✗ ${f.err||'Erreur'}</span>`}
+          <button class="cpbtn" onclick="removeBilan(${i})" style="color:var(--red);border-color:var(--red);margin-left:6px">✕</button>
+        </div>`).join('')}
+    </div>`;
+}
+function removeBilan(i){bilans.splice(i,1);renderFiles(bilans.map(b=>({name:b.name,type:b.type,ok:true,chars:b.content.length})));}
+function addManual(){
+  const t=document.getElementById('mt').value,c=document.getElementById('mc').value.trim();
+  if(!c)return;
+  bilans.push({name:t+' (saisi)',type:t,content:c});
+  document.getElementById('mc').value='';
+  renderFiles(bilans.map(b=>({name:b.name,type:b.type,ok:true,chars:b.content.length})));
+}
+
+// ═══════════════════════════════════════════════════════════
+// PATIENTS
+// ═══════════════════════════════════════════════════════════
+let curPID=null;
+const FIDS=[
+  'p-prenom','p-nom','p-ddn','p-age','p-sexe','motif-dem','motif-txt','v-fam','v-lieu',
+  'a-fam','a-diag','a-para','a-tact','a-tpass','g-der','g-gest',
+  'n-mode','n-sa','n-apgar','n-poids','n-taille','n-pc','n-patho',
+  'd-mots','d-phrases','d-soc','d-reg','d-mot','d-garde','d-prop','d-inq',
+  's-mat','s-prim','s-coll','s-act','s-app','s-mdph',
+  'b-psm','b-psy','b-orth','b-ergo','b-educ','b-med','b-ald',
+  'au-alim','au-hyg','au-hab','au-ori','au-dep','au-enur','au-tc','au-som',
+  'cl-hum','cl-som','cl-app','cl-anx','cl-psy','cl-tdah','cl-top','cl-tra','cl-ret','cl-par',
+  'ex-mot','ex-mor',
+  'adi-a1','adi-a2','adi-a3','adi-a4','adi-sa-diag','adi-sa-act',
+  'adi-b1','adi-b2','adi-b3','adi-b4','adi-sb-diag','adi-sb-act',
+  'adi-c1','adi-c2','adi-c3','adi-c4','adi-sc-diag','adi-sc-act',
+  'adi-d','adi-sd','adi-concl','adi-autres',
+  't-avis','t-rec','t-cnv','t-rel','t-cogn','t-ste','t-imm','t-int','t-sen',
+  'c-txt','c-prec','c-aut'
+];
+const CBIDS=['cb-ados','cb-adir','cb-sens','cb-nps','cb-psm','cb-ergo','cb-orth'];
+
+function collectForm(){
+  const d={};
+  FIDS.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value;});
+  CBIDS.forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.checked;});
+  d._bilans=bilans.map(b=>({name:b.name,type:b.type}));
+  return d;
+}
+function applyForm(d){
+  FIDS.forEach(id=>{const el=document.getElementById(id);if(el&&d[id]!==undefined){el.value=d[id];el.classList.remove('prefilled');}});
+  CBIDS.forEach(id=>{const el=document.getElementById(id);if(el&&d[id]!==undefined)el.checked=d[id];});
+  bilans=d._bilans||[];
+  renderFiles(bilans.map(b=>({name:b.name,type:b.type,ok:true,chars:0})));
+  updateBadge();
+}
+function clearForm(){
+  FIDS.forEach(id=>{const el=document.getElementById(id);if(el){el.value='';el.classList.remove('prefilled');}});
+  CBIDS.forEach(id=>{const el=document.getElementById(id);if(el)el.checked=['cb-ados','cb-adir','cb-sens'].includes(id);});
+  bilans=[];document.getElementById('ilist').innerHTML='';
+  document.getElementById('pbanner').style.display='none';
+  document.getElementById('sph').style.display='';
+  document.getElementById('sout').style.display='none';
+  document.getElementById('sout').textContent='';
+  updateBadge();
+}
+function getPatients(){try{return JSON.parse(LS('cra_pts')||'[]');}catch{return[];}}
+function setPatients(l){SS('cra_pts',JSON.stringify(l));}
+
+function savePatient(){
+  const name=document.getElementById('p-prenom').value.trim()||'Sans nom';
+  const data=collectForm();
+  let pts=getPatients();
+  if(curPID){
+    const i=pts.findIndex(p=>p.id===curPID);
+    if(i>=0){pts[i].name=name;pts[i].data=data;pts[i].up=new Date().toLocaleDateString('fr-FR');}
+    else pts.push({id:curPID,name,data,up:new Date().toLocaleDateString('fr-FR')});
+  }else{
+    curPID='p_'+Date.now();
+    pts.push({id:curPID,name,data,up:new Date().toLocaleDateString('fr-FR')});
+  }
+  setPatients(pts);renderPatients();
+  const btns=document.querySelectorAll('[onclick="savePatient()"]');
+  btns.forEach(b=>{const o=b.textContent;b.textContent='✓';setTimeout(()=>b.textContent=o,1200);});
+}
+function newPatient(){
+  if(document.getElementById('p-prenom').value&&!confirm('Nouveau dossier ? Données non sauvegardées perdues.'))return;
+  curPID=null;clearForm();go('import');togglePD();
+}
+function loadPatient(id){
+  const p=getPatients().find(x=>x.id===id);if(!p)return;
+  curPID=id;applyForm(p.data);go('motif');togglePD();
+}
+function deletePatient(id,ev){
+  ev.stopPropagation();
+  if(!confirm('Supprimer ce dossier ?'))return;
+  setPatients(getPatients().filter(p=>p.id!==id));
+  if(curPID===id){curPID=null;clearForm();}
+  renderPatients();
+}
+function renderPatients(){
+  const pts=getPatients();
+  const el=document.getElementById('pdlist');
+  if(!pts.length){el.innerHTML='<div style="padding:14px;font-size:12px;color:var(--dim);text-align:center;font-style:italic">Aucun dossier</div>';return;}
+  el.innerHTML=pts.slice().reverse().map(p=>`
+    <div class="pcard ${p.id===curPID?'active':''}" onclick="loadPatient('${p.id}')">
+      <div><div class="pcn">${p.name}</div><div class="pcd">${p.up}</div></div>
+      <button class="pcdel" onclick="deletePatient('${p.id}',event)">🗑</button>
+    </div>`).join('');
+}
+function togglePD(){const d=document.getElementById('pdw');d.classList.toggle('open');if(d.classList.contains('open'))renderPatients();}
+
+// ═══════════════════════════════════════════════════════════
+// API CALL
+// ═══════════════════════════════════════════════════════════
+async function callAPI(key,content,max_tokens=2000){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens,messages:[{role:'user',content}]})
+  });
+  const d=await res.json();
+  if(d.error)throw new Error(d.error.message);
+  return d;
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+const v=id=>{const e=document.getElementById(id);return e?e.value.trim():'';};
+const cb=id=>{const e=document.getElementById(id);return e?e.checked:false;};
+
+function getBP(){
+  return[cb('cb-ados')?'ADOS':'',cb('cb-adir')?'ADI-R':'',cb('cb-sens')?'Profil sensoriel':'',
+    cb('cb-nps')?'Bilan neuropsychologique':'',cb('cb-psm')?'Bilan psychomoteur':'',
+    cb('cb-ergo')?'Bilan ergothérapeutique':'',cb('cb-orth')?'Bilan orthophonique':''].filter(Boolean);
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONSTRUCTION DU CR (texte structuré)
+// ═══════════════════════════════════════════════════════════
+function buildCRText(){
+  const bp=getBP();
+  const hasDiag=v('a-diag')||v('a-para');
+
+  // ADI-R scores
+  const adiScores=v('adi-sa-diag')?
+    `\nALGORITHME ADI-R :
+  Domaine A — Interaction sociale : ${v('adi-sa-diag')||'?'} (diag) / ${v('adi-sa-act')||'?'} (actuel) — seuil diagnostic ≥10
+  Domaine B — Communication : ${v('adi-sb-diag')||'?'} (diag) / ${v('adi-sb-act')||'?'} (actuel) — seuil diagnostic ≥8
+  Domaine C — Stéréotypies : ${v('adi-sc-diag')||'?'} (diag) / ${v('adi-sc-act')||'?'} (actuel) — seuil diagnostic ≥3
+  Domaine D — Anomalie avant 36 mois : ${v('adi-sd')||'?'} — seuil diagnostic ≥1
+  ${v('adi-concl')||''}` : '';
+
+  return[
+`MOTIF DE L'ÉVALUATION`,
+`L'enfant ${v('p-prenom')}${v('p-nom')?' '+v('p-nom'):''}, né(e) le ${v('p-ddn')||'[date]'}, âgé(e) de ${v('p-age')||'[âge]'}, a bénéficié d'un avis de la réunion de concertation pluri-professionnelle du CRA à la demande du ${v('motif-dem')||'[demandeur]'}.`,
+v('motif-txt'),
+'',
+`ANTÉCÉDENTS FAMILIAUX`,
+v('a-fam')||'[À COMPLÉTER]',
+'',
+`ANTÉCÉDENTS PERSONNELS`,
+hasDiag?`Diagnostics médicaux et paramédicaux antérieurement posés : ${v('a-diag')||''} ${v('a-para')||''}`.trim():'Aucun diagnostic médical ou paramédical antérieur signalé.',
+`Traitements passés : ${v('a-tpass')||'Aucun'}`,
+`Traitements actuels : ${v('a-tact')||'Aucun'}`,
+'',
+`GROSSESSE ET DÉVELOPPEMENT PRÉCOCE`,
+`La grossesse ${v('g-der')||'[À COMPLÉTER]'}`,
+v('g-gest')?`Gestation : ${v('g-gest')}`:'',
+`L'accouchement est ${v('n-mode')||'[mode]'}${v('n-sa')?' à '+v('n-sa')+' SA':''}.`,
+`APGAR à 1 min / APGAR à 5 min : ${v('n-apgar')||'[?]'}`,
+`Poids : ${v('n-poids')||'[?]'} kg — Taille : ${v('n-taille')||'[?]'} cm — Périmètre crânien : ${v('n-pc')||'[?]'} cm`,
+v('n-patho')?`Pathologie néonatale : ${v('n-patho')}`:'',
+'',
+`Dans le développement précoce, on note :`,
+v('d-inq')?`Premières inquiétudes parentales : ${v('d-inq')}`:'',
+v('d-mots')?`Langage — premiers mots : ${v('d-mots')}`:'',
+v('d-phrases')?`Langage — premières phrases : ${v('d-phrases')}`:'',
+v('d-reg')?`Régression / perte d'acquis : ${v('d-reg')}`:'',
+v('d-soc')?`Socialisation précoce : ${v('d-soc')}`:'',
+v('d-mot')?`Développement moteur : ${v('d-mot')}`:'',
+v('d-garde')?`Alimentation / nuits / tonus : ${v('d-garde')}`:'',
+v('d-prop')?`Propreté : ${v('d-prop')}`:'',
+'',
+`CURSUS SCOLAIRE`,
+v('s-mat')?`Maternelle : ${v('s-mat')}`:'Maternelle : [À COMPLÉTER]',
+v('s-prim')?`Primaire : ${v('s-prim')}`:'Primaire : [À COMPLÉTER]',
+v('s-coll')?`Collège / Lycée : ${v('s-coll')}`:'',
+v('s-app')?`Apprentissages (Lecture / écriture / graphie / comptage / calcul / géométrie) : ${v('s-app')}`:'',
+v('s-mdph')?`ESS / GEVASCO / MDPH : ${v('s-mdph')}`:'',
+v('s-act')?`Actuellement : ${v('s-act')}`:'Actuellement : [À COMPLÉTER]',
+'',
+`RÉÉDUCATIONS, BILANS PARAMÉDICAUX ET PRISES EN CHARGE`,
+`Bilan psychomoteur : ${v('b-psm')||'Non renseigné'}`,
+`Bilan psychologique / neuropsychologique : ${v('b-psy')||'Non renseigné'}`,
+`Bilan orthophonie : ${v('b-orth')||'Non renseigné'}`,
+`Bilan ergothérapeute : ${v('b-ergo')||'Non renseigné'}`,
+`Bilan éducateur : ${v('b-educ')||'Non renseigné'}`,
+'',
+`BILANS MÉDICAUX`,
+v('b-med')||'[À COMPLÉTER]',
+`Notification MDPH / ALD : ${v('b-ald')||'[À COMPLÉTER]'}`,
+'',
+`AUTONOMIE`,
+`Alimentation : ${v('au-alim')||'[À COMPLÉTER]'}`,
+`Hygiène : ${v('au-hyg')||'[À COMPLÉTER]'}`,
+`Énurésie / Encoprésie actuelle : ${v('au-enur')||'Non signalée'}`,
+`Habillage/déshabillage : ${v('au-hab')||'[À COMPLÉTER]'}`,
+`Orientation temporo-spatiale : ${v('au-ori')||'[À COMPLÉTER]'}`,
+`Autonomie pour les déplacements : ${v('au-dep')||'[À COMPLÉTER]'}`,
+`Comportement : ${v('au-tc')||'[À COMPLÉTER]'}`,
+`Sommeil : ${v('au-som')||'[À COMPLÉTER]'}`,
+'',
+`CLINIQUE ACTUELLE`,
+`Humeur : ${v('cl-hum')||'[À COMPLÉTER]'}`,
+`Sommeil : ${v('cl-som')||'[À COMPLÉTER]'}`,
+`Appétit : ${v('cl-app')||'[À COMPLÉTER]'}`,
+`Anxiété : ${v('cl-anx')||'[À COMPLÉTER]'}`,
+`Symptômes psychotiques : ${v('cl-psy')||'Aucun'}`,
+`TDAH / TOCs / Tics / addictions : ${v('cl-tdah')||'[À COMPLÉTER]'}`,
+`TOP / Trouble des conduites : ${v('cl-top')||'[À COMPLÉTER]'}`,
+`Traumatisme / TCA / automutilation : ${v('cl-tra')||'[À COMPLÉTER]'}`,
+`Retentissement intra-familial / scolaire / extra-scolaire : ${v('cl-ret')||'[À COMPLÉTER]'}`,
+`Inquiétudes parentales actuelles : ${v('cl-par')||'[À COMPLÉTER]'}`,
+v('ex-mot')?`Particularités motrices : ${v('ex-mot')}`:'',
+v('ex-mor')?`Particularités morphologiques : ${v('ex-mor')}`:'',
+'',
+`SYMPTOMATOLOGIE EN LIEN AVEC UNE SUSPICION DE TROUBLE DU SPECTRE DE L'AUTISME LORS DE LA CONSULTATION MÉDICALE`,
+'',
+`Avis des parents concernant le TSA : ${v('t-avis')||'[À COMPLÉTER]'}`,
+'',
+v('adi-a1')||v('adi-b1')?`ADI-R — ITEMS DÉTAILLÉS`:'',
+v('adi-a1')||v('adi-b1')?`\nA — Anomalies qualitatives dans l'interaction sociale réciproque`:'',
+v('adi-a1')?`A1. Comportements non verbaux : ${v('adi-a1')}`:'',
+v('adi-a2')?`A2. Développement des relations avec les pairs : ${v('adi-a2')}`:'',
+v('adi-a3')?`A3. Plaisir partagé : ${v('adi-a3')}`:'',
+v('adi-a4')?`A4. Réciprocité socio-émotionnelle : ${v('adi-a4')}`:'',
+v('adi-b1')?`\nB — Anomalies qualitatives dans la communication`:'',
+v('adi-b1')?`B1. Retard de langage parlé / compensation gestuelle : ${v('adi-b1')}`:'',
+v('adi-b2')?`B2. Échange conversationnel : ${v('adi-b2')}`:'',
+v('adi-b3')?`B3. Discours stéréotypé / répétitif : ${v('adi-b3')}`:'',
+v('adi-b4')?`B4. Jeux de faire semblant / imitation : ${v('adi-b4')}`:'',
+v('adi-c1')?`\nC — Comportements restreints, répétitifs et stéréotypés`:'',
+v('adi-c1')?`C1. Intérêts restreints / préoccupations envahissantes : ${v('adi-c1')}`:'',
+v('adi-c2')?`C2. Routines / rituels : ${v('adi-c2')}`:'',
+v('adi-c3')?`C3. Maniérismes moteurs : ${v('adi-c3')}`:'',
+v('adi-c4')?`C4. Parties d'objets / intérêts sensoriels : ${v('adi-c4')}`:'',
+v('adi-d')?`\nD — Anomalies du développement avant 36 mois : ${v('adi-d')}`:'',
+adiScores,
+'',
+`SIGNES SOCIAUX`,
+`Réciprocité émotionnelle : ${v('t-rec')||'[À COMPLÉTER]'}`,
+`Comportements non verbaux : ${v('t-cnv')||'[À COMPLÉTER]'}`,
+`Développement, maintien, compréhension des relations : ${v('t-rel')||'[À COMPLÉTER]'}`,
+v('t-cogn')?`Aspects cognitifs : ${v('t-cogn')}`:'',
+'',
+`SIGNES NON SOCIAUX`,
+`Caractère stéréotypé : ${v('t-ste')||'[À COMPLÉTER]'}`,
+`Attachement à l'immuabilité : ${v('t-imm')||'[À COMPLÉTER]'}`,
+`Intérêt restreint : ${v('t-int')||'[À COMPLÉTER]'}`,
+`Sensorialité : ${v('t-sen')||'[À COMPLÉTER]'}`,
+'',
+`Conclusion médicale :`,
+v('c-txt')||'[À COMPLÉTER]',
+'',
+`En conclusion, au vu de la clinique actuelle et d'une suspicion de TSA, il nous semble important de compléter les bilans au CRA RÉUNION :`,
+...bp.map(b=>`• ${b}`),
+v('c-prec')?`• ${v('c-prec')}`:'',
+v('c-aut')||'',
+'',
+`Saint-Denis de La Réunion, le ${new Date().toLocaleDateString('fr-FR')}`,
+'',getMed(),getTit(),`CRA Réunion — pole-enfant.cra@clairejoie.re`
+  ].filter(s=>s!==null&&s!==undefined&&s!=='').join('\n');
+}
+
+// ═══════════════════════════════════════════════════════════
+// GÉNÉRATION IA — CR final + plan de soins
+// ═══════════════════════════════════════════════════════════
+async function generateDoc(){
+  const key=getKey();if(!key){openOv();return;}
+  const btn=document.getElementById('gbtn');
+  btn.disabled=true;btn.textContent='⏳…';
+  document.getElementById('sph').style.display='none';
+  document.getElementById('sout').style.display='';
+  document.getElementById('sout').innerHTML='<div class="lbar"></div><div class="lmsg">Génération du CR niveau CRA-3…</div>';
+
+  const crBrut=buildCRText();
+
+  const prompt=`${SYSTEM_PROMPT}
+
+Tu reçois le squelette pré-rempli du 1er RDV médical CRA pour ${v('p-prenom')||'cet enfant'}, ${v('p-age')||'[âge]'}.
+
+MISSION : Rédiger le compte rendu final niveau CRA niveau 3.
+
+RÈGLES ABSOLUES :
+1. Conserver TOUTES les informations — ne rien résumer abusivement, ne rien supprimer
+2. Reformuler avec un style médical précis, fluide, professionnel
+3. Pour les items ADI-R : maintenir la distinction petite enfance / actuel, les manifestations concrètes avec exemples, les scores
+4. Pour le développement précoce : être exhaustif sur les jalons qualitatifs et quantitatifs avec les âges exacts
+5. Remplacer [À COMPLÉTER] UNIQUEMENT si tu peux l'inférer avec certitude des données fournies
+6. La conclusion doit être argumentée : orientation diagnostique, niveau de sévérité DSM-5, comorbidités
+7. Ne pas inventer — s'appuyer uniquement sur les données fournies
+8. Garder EXACTEMENT la même structure de sections dans le même ordre
+
+SQUELETTE :
+${crBrut}`;
+
+  const planPrompt=`${SYSTEM_PROMPT}
+
+Sur la base de ce dossier de 1er RDV CRA, rédige un PLAN DE SOINS argumenté niveau CRA-3.
+Patient : ${v('p-prenom')||'[?]'}, ${v('p-age')||'[?]'}
+
+Structure obligatoire :
+
+━━ 1. ORIENTATION DIAGNOSTIQUE ET ARGUMENTATION DSM-5/CIM-11
+   — Diagnostic principal pressenti, niveau de sévérité (1/2/3), critères A et B du DSM-5 remplis
+   — Comorbidités identifiées ou à explorer (TDAH, anxiété, DI, etc.)
+   — Diagnostics différentiels
+
+━━ 2. BILANS COMPLÉMENTAIRES PRIORITAIRES AU CRA
+   — Chaque bilan justifié cliniquement avec objectifs précis
+
+━━ 3. PRISES EN CHARGE THÉRAPEUTIQUES RECOMMANDÉES
+   — Rééducations spécifiques (orthophonie pragmatique, psychomotricité, ergo)
+   — Structures adaptées (SESSAD, IME, ITEP selon profil et niveau)
+   — Accompagnement psychiatrique et suivi
+   — Traitement médicamenteux si comorbidité pertinente
+
+━━ 4. DÉMARCHES MDPH / ALD
+   — AEEH niveau estimé et justification argumentée
+   — AESH (type, nombre d'heures recommandé)
+   — ALD 23 si TSA confirmé, PCH si applicable
+   — PPS / PAP à mettre en place en urgence
+
+━━ 5. GUIDANCE PARENTALE ET SOUTIEN FAMILIAL
+   — Psychoéducation TSA adaptée à la famille
+   — Associations à La Réunion (Autisme Réunion, ADAPEI, etc.)
+   — Épuisement parental : évaluation et soutien
+
+━━ 6. POINTS DE VIGILANCE ET SUIVI CRA
+   — Signaux d'alerte spécifiques à ce dossier
+   — Fréquence de suivi recommandée
+   — Objectifs à 6 mois et à 1 an
+
+DONNÉES :
+${crBrut.substring(0,8000)}`;
+
+  try{
+    const [r1,r2]=await Promise.all([
+      callAPI(key,prompt,4000),
+      callAPI(key,planPrompt,2000)
+    ]);
+    const txt=(r1.content||[]).map(c=>c.text||'').join('');
+    const plan=(r2.content||[]).map(c=>c.text||'').join('');
+    document.getElementById('sout').textContent=txt||crBrut;
+    document.getElementById('sph').style.display='none';
+    document.getElementById('sph-s').style.display='none';
+    document.getElementById('sug-c').style.display='';
+    document.getElementById('sug-c').innerHTML=`
+      <div class="sugb">
+        <div class="sugt">Plan de soins — CRA Réunion niveau 3</div>
+        <div class="sout" style="font-size:10.5px">${plan.replace(/</g,'&lt;').replace(/\n/g,'<br>')}</div>
+      </div>`;
+  }catch(e){
+    document.getElementById('sout').textContent='Erreur : '+e.message;
+  }
+  btn.disabled=false;btn.textContent='⚡ Générer';
+}
+
+function copyOut(){
+  const t=document.getElementById('sout').textContent;if(!t)return;
+  navigator.clipboard.writeText(t).then(()=>{
+    document.querySelectorAll('[onclick="copyOut()"]').forEach(b=>{const o=b.textContent;b.textContent='✓ Copié';setTimeout(()=>b.textContent=o,1500);});
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPORT WORD — bibliothèque docx chargée dynamiquement
+// ═══════════════════════════════════════════════════════════
+async function exportWord(){
+  const origTxt=document.getElementById('gbtn').textContent;
+  document.getElementById('gbtn').textContent='📄 Chargement…';
+
+  // Charger docx si pas encore disponible
+  if(!window.docx || !window.docx.Document){
+    try{
+      await loadDocx();
+    }catch(e){
+      document.getElementById('gbtn').textContent=origTxt;
+      alert('Impossible de charger la bibliothèque Word.\n'+e.message+'\n\nVérifiez votre connexion internet et réessayez.');
+      return;
+    }
+  }
+
+  const D=window.docx;
+  if(!D||!D.Document||!D.Packer){
+    document.getElementById('gbtn').textContent=origTxt;
+    alert('Bibliothèque Word non initialisée. Réessayez dans quelques secondes.');
+    return;
+  }
+
+  const crText=document.getElementById('sout').textContent.trim()||buildCRText();
+  const lines=crText.split('\n');
+
+  const SECTION_TITLES=new Set([
+    "MOTIF DE L'ÉVALUATION","ANTÉCÉDENTS FAMILIAUX","ANTÉCÉDENTS PERSONNELS",
+    "GROSSESSE ET DÉVELOPPEMENT PRÉCOCE","CURSUS SCOLAIRE",
+    "RÉÉDUCATIONS, BILANS PARAMÉDICAUX ET PRISES EN CHARGE","BILANS MÉDICAUX",
+    "AUTONOMIE","CLINIQUE ACTUELLE","ADI-R — ITEMS DÉTAILLÉS",
+    "A — Anomalies qualitatives dans l'interaction sociale réciproque",
+    "B — Anomalies qualitatives dans la communication",
+    "C — Comportements restreints, répétitifs et stéréotypés",
+    "D — Anomalies du développement avant 36 mois",
+    "SYMPTOMATOLOGIE EN LIEN AVEC UNE SUSPICION DE TROUBLE DU SPECTRE DE L'AUTISME LORS DE LA CONSULTATION MÉDICALE",
+    "SIGNES SOCIAUX","SIGNES NON SOCIAUX","Conclusion médicale :"
+  ]);
+
+  const makeRun=(text,opts={})=>new D.TextRun({text,font:'Arial',size:20,...opts});
+
+  const children=[];
+
+  // ── En-tête ──────────────────────────────────────────────
+  children.push(new D.Paragraph({
+    alignment:D.AlignmentType.CENTER,
+    spacing:{after:80},
+    children:[makeRun('CENTRE RESSOURCE AUTISME — CRA RÉUNION',{bold:true,size:26,color:'2C5F8A'})]
+  }));
+  children.push(new D.Paragraph({
+    alignment:D.AlignmentType.CENTER,
+    spacing:{after:60},
+    children:[makeRun('COMPTE RENDU DE PREMIER RENDEZ-VOUS MÉDICAL',{bold:true,size:22})]
+  }));
+  children.push(new D.Paragraph({
+    spacing:{after:200},
+    border:{bottom:{style:D.BorderStyle.SINGLE,size:8,color:'2C5F8A',space:1}},
+    children:[makeRun('')]
+  }));
+
+  // ── Info patient ──────────────────────────────────────────
+  const pp=v('p-prenom'),pno=v('p-nom'),pa=v('p-age'),pd=v('p-ddn');
+  if(pp||pno){
+    children.push(new D.Paragraph({
+      spacing:{after:40},
+      children:[
+        makeRun('Patient(e) : ',{bold:true}),
+        makeRun(`${pp}${pno?' '+pno:''} — ${pa||'âge ?'} — né(e) le ${pd||'?'}`)
+      ]
+    }));
+    children.push(new D.Paragraph({spacing:{after:180},children:[makeRun('')]}));
+  }
+
+  // ── Corps du document ─────────────────────────────────────
+  for(const line of lines){
+    const tr=line.trim();
+    if(!tr){
+      children.push(new D.Paragraph({spacing:{after:40},children:[makeRun('')]}));
+      continue;
+    }
+
+    if(SECTION_TITLES.has(tr)){
+      // Titre de rubrique
+      children.push(new D.Paragraph({
+        spacing:{before:200,after:60},
+        border:{bottom:{style:D.BorderStyle.SINGLE,size:4,color:'2C5F8A',space:1}},
+        children:[makeRun(tr,{bold:true,color:'2C5F8A',allCaps:true,size:21})]
+      }));
+    } else if(tr.startsWith('•')){
+      children.push(new D.Paragraph({
+        spacing:{after:40},
+        indent:{left:360},
+        children:[makeRun(tr)]
+      }));
+    } else if(tr===getMed()||tr===getTit()||tr.startsWith('CRA Réunion')||tr.startsWith('Saint-Denis')){
+      children.push(new D.Paragraph({
+        spacing:{after:40},
+        children:[makeRun(tr,{italics:tr===getTit()})]
+      }));
+    } else {
+      // Ligne normale : détecter "Label : valeur"
+      const ci=tr.indexOf(' : ');
+      if(ci>0 && ci<70 && !tr.startsWith('—') && !tr.startsWith('-') && !tr.startsWith('A1') && !tr.startsWith('A2') && !tr.startsWith('B') && !tr.startsWith('C') && !tr.startsWith('D ')){
+        children.push(new D.Paragraph({
+          spacing:{after:50},
+          children:[
+            makeRun(tr.substring(0,ci)+' : ',{bold:true}),
+            makeRun(tr.substring(ci+3))
+          ]
+        }));
+      } else {
+        children.push(new D.Paragraph({
+          spacing:{after:50},
+          children:[makeRun(tr)]
+        }));
+      }
+    }
+  }
+
+  try{
+    const doc=new D.Document({
+      creator:getMed(),
+      title:`CR 1er RDV CRA — ${v('p-prenom')||'Patient'}`,
+      styles:{default:{document:{run:{font:'Arial',size:20}}}},
+      sections:[{
+        properties:{
+          page:{
+            size:{width:11906,height:16838}, // A4
+            margin:{top:1134,right:1134,bottom:1134,left:1134} // 2cm
+          }
+        },
+        children
+      }]
+    });
+
+    const blob=await D.Packer.toBlob(doc);
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const fname=`CR_1erRDV_${v('p-prenom')||'patient'}_${new Date().toLocaleDateString('fr-FR').replace(/\//g,'-')}.docx`;
+    a.href=url; a.download=fname;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(url);},1000);
+
+  }catch(e){
+    console.error('Word gen error:',e);
+    alert('Erreur génération Word : '+e.message);
+  }
+  document.getElementById('gbtn').textContent=origTxt;
+}
+
+function loadDocx(){
+  return new Promise((resolve,reject)=>{
+    // Essai 1 : unpkg
+    const s1=document.createElement('script');
+    s1.src='https://unpkg.com/docx@8.5.0/build/index.js';
+    s1.onload=()=>{
+      // unpkg expose docx comme window.docx ou comme module
+      if(!window.docx && window.DocxModule) window.docx=window.DocxModule;
+      setTimeout(resolve,150); // petit délai pour initialisation
+    };
+    s1.onerror=()=>{
+      // Essai 2 : cdnjs
+      const s2=document.createElement('script');
+      s2.src='https://cdnjs.cloudflare.com/ajax/libs/docx/8.5.0/docx.umd.min.js';
+      s2.onload=()=>setTimeout(resolve,150);
+      s2.onerror=()=>reject(new Error('Impossible de charger docx depuis unpkg ni cdnjs'));
+      document.head.appendChild(s2);
+    };
+    document.head.appendChild(s1);
+  });
+}
+</script>
+</body>
+</html>
